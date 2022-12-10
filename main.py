@@ -24,7 +24,6 @@ class Game:
         self.collision_check()
 
         self.aliens_position_check()
-        self.aliens_shoot()
         self.alien_bullets.update()
         self.aliens.update(self.aliens_direction)
 
@@ -56,17 +55,16 @@ class Game:
     def aliens_shoot(self):
         if self.aliens.sprites():
             alien = random.choice(self.aliens.sprites())
-            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom)
+            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 5)
             self.alien_bullets.add(laser_sprite)
 
     def create_aliens(self, rows_count, columns_count,
                       x_distance=60, y_distance=48, x_offset=70, y_offset=100):
-        for row_index, row in enumerate(range(rows_count)):
-            for col_index, col in enumerate(range(columns_count)):
-                x = col_index * x_distance + x_offset
-                y = row_index * y_distance + y_offset
+        for row in range(rows_count):
+            for col in range(columns_count):
+                x = col * x_distance + x_offset
+                y = row * y_distance + y_offset
                 self.aliens.add(Alien(x, y))
-
 
 
 def main():
@@ -77,11 +75,15 @@ def main():
     clock = pygame.time.Clock()
     game = Game()
     run = True
+    ALIENSHOOT = pygame.USEREVENT + 0
+    pygame.time.set_timer(ALIENSHOOT, 1000)
     while run:
         clock.tick(60)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == ALIENSHOOT:
+                game.aliens_shoot()
         screen.fill((0, 0, 0))
         game.run()
         pygame.display.update()

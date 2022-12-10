@@ -26,22 +26,22 @@ class Ship(pygame.sprite.Sprite):
         time_now = pygame.time.get_ticks()
         if (key[pygame.K_SPACE] or key[pygame.K_UP]) and \
                 time_now - self.last_shot > self.cooldown:
-            bullet = Bullet(self.rect.centerx, self.rect.top)
+            bullet = Bullet(self.rect.centerx, self.rect.top, -5)
             self.bullets.add(bullet)
             self.last_shot = time_now
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed):
         super().__init__()
         self.screen_height = pygame.display.get_surface().get_height()
         self.image = pygame.image.load("bullet.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.speed = 5
+        self.speed = speed
 
     def update(self):
-        self.rect.y -= self.speed
+        self.rect.y += self.speed
         if self.rect.bottom <= 0 or self.rect.top >= self.screen_height:
             self.kill()
 
@@ -52,7 +52,7 @@ class Alien(pygame.sprite.Sprite):
         self.image = pygame.image.load("alien.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.speed = 5
+        self.speed = 1
 
     def update(self, direction):
         self.rect.x += self.speed * direction
