@@ -18,6 +18,21 @@ class Game:
         self.is_finished = False
 
     def run(self):
+        run = True
+        clock = pygame.time.Clock()
+        ALIENSHOOT = pygame.USEREVENT + 0
+        pygame.time.set_timer(ALIENSHOOT, 1000)
+        while run:
+            clock.tick(60)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == ALIENSHOOT:
+                    self.aliens_shoot()
+            self.update()
+
+    def update(self):
+        self.screen.fill((0, 0, 0))
         self.ship.update()
         self.ship.sprite.bullets.update()
 
@@ -31,6 +46,8 @@ class Game:
         self.ship.draw(self.screen)
         self.aliens.draw(self.screen)
         self.alien_bullets.draw(self.screen)
+
+        pygame.display.update()
 
     def collision_check(self):
         for bullet in self.ship.sprite.bullets:
@@ -70,23 +87,10 @@ class Game:
 def main():
     pygame.init()
     size = 600, 800
-    screen = pygame.display.set_mode(size)
+    pygame.display.set_mode(size, pygame.RESIZABLE)
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
-    clock = pygame.time.Clock()
     game = Game()
-    run = True
-    ALIENSHOOT = pygame.USEREVENT + 0
-    pygame.time.set_timer(ALIENSHOOT, 1000)
-    while run:
-        clock.tick(60)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == ALIENSHOOT:
-                game.aliens_shoot()
-        screen.fill((0, 0, 0))
-        game.run()
-        pygame.display.update()
+    game.run()
 
 
 if __name__ == '__main__':
