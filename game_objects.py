@@ -4,7 +4,7 @@ import pygame
 class Ship(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load('ship.png').convert()
+        self.image = pygame.image.load('textures/ship.png').convert()
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 5
@@ -26,16 +26,19 @@ class Ship(pygame.sprite.Sprite):
         time_now = pygame.time.get_ticks()
         if (key[pygame.K_SPACE] or key[pygame.K_UP]) and \
                 time_now - self.last_shot > self.cooldown:
-            bullet = Bullet(self.rect.centerx, self.rect.top, -5)
+            bullet = Bullet(self.rect.centerx, self.rect.top, -5, False)
             self.bullets.add(bullet)
             self.last_shot = time_now
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, speed):
+    def __init__(self, x, y, speed, is_alien):
         super().__init__()
         self.screen_height = pygame.display.get_surface().get_height()
-        self.image = pygame.image.load("bullet.png")
+        if is_alien:
+            self.image = pygame.image.load("textures/alien_bullet.png")
+        else:
+            self.image = pygame.image.load("textures/bullet.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = speed
@@ -49,7 +52,7 @@ class Bullet(pygame.sprite.Sprite):
 class Alien(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load("alien.png")
+        self.image = pygame.image.load("textures/alien1.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 1

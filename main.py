@@ -12,7 +12,7 @@ class Game:
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
-        self.create_aliens(3, 8)
+        self.create_aliens(5, 11)
         self.aliens_direction = 1
 
         self.is_finished = False
@@ -72,11 +72,11 @@ class Game:
     def aliens_shoot(self):
         if self.aliens.sprites():
             alien = random.choice(self.aliens.sprites())
-            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 5)
+            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 5, True)
             self.alien_bullets.add(laser_sprite)
 
     def create_aliens(self, rows_count, columns_count,
-                      x_distance=60, y_distance=48, x_offset=70, y_offset=100):
+                      x_distance=80, y_distance=48, x_offset=70, y_offset=100):
         for row in range(rows_count):
             for col in range(columns_count):
                 x = col * x_distance + x_offset
@@ -86,8 +86,8 @@ class Game:
 
 def main():
     pygame.init()
-    size = 600, 800
-    pygame.display.set_mode(size, pygame.RESIZABLE)
+    size = 1350, 1080
+    pygame.display.set_mode(size)
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
     game = Game()
     game.run()
