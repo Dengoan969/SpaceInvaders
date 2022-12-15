@@ -62,8 +62,28 @@ class Alien(pygame.sprite.Sprite):
 
 
 class Bunker_Block(pygame.sprite.Sprite):
-    def __init__(self, size, color, x, y):
+    def __init__(self, size, x, y):
         super().__init__()
         self.image = pygame.Surface((size, size))
-        self.image.fill(color)
+        self.image.fill((255, 255, 255))
         self.rect = self.image.get_rect(topleft=(x, y))
+
+
+class MysteryShip(pygame.sprite.Sprite):
+    def __init__(self, direction):
+        super().__init__()
+        self.screen_width = pygame.display.get_surface().get_width()
+        self.image = pygame.image.load("textures/MysteryShip.png")
+        self.rect = self.image.get_rect()
+        if direction == 1:
+            x = -80
+        else:
+            x = self.screen_width + 80
+        self.rect.center = (x, 50)
+        self.speed = 3 * direction
+
+    def update(self):
+        self.rect.x += self.speed
+        if self.speed > 0 and self.rect.left > self.screen_width or\
+                self.speed < 0 and self.rect.right <= 0:
+            self.kill()
