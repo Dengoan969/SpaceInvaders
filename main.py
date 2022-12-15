@@ -1,4 +1,5 @@
 import pygame
+import sys
 import random
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
@@ -10,7 +11,7 @@ class Game:
         ship = Ship(self.screen_width // 2, self.screen_height - 100)
         self.ship = pygame.sprite.GroupSingle(ship)
 
-        self.lives = 3
+        self.lives = 2
         self.live_img = pygame.image.load(
             'textures/ship.png').convert()
         self.live_x_start_pos = self.screen_width - (
@@ -81,13 +82,27 @@ class Game:
 
     def collision_check(self):
         for bullet in self.ship.sprite.bullets:
-            if pygame.sprite.spritecollide(bullet, self.aliens, True) or \
+            hit_aliens = pygame.sprite.spritecollide(bullet, self.aliens, True)
+            if hit_aliens or \
                     pygame.sprite.spritecollide(bullet, self.blocks, True):
                 bullet.kill()
+                for alien in hit_aliens:
+                    self.score += alien.prize
+            if pygame.sprite.spritecollide(bullet, self.mystery, True):
+                bullet.kill()
+                self.score += 500
 
         for bullet in self.alien_bullets:
             if pygame.sprite.spritecollide(bullet, self.blocks, True):
                 bullet.kill()
+            if pygame.sprite.spritecollide(bullet,self.ship, True):
+                bullet.kill()
+                self.lives -= 1
+                if self.lives < 0:
+                    pygame.quit()
+                    sys.exit()
+                ship = Ship(self.screen_width // 2, self.screen_height - 100)
+                self.ship = pygame.sprite.GroupSingle(ship)
 
     def aliens_position_check(self):
         for alien in self.aliens:
@@ -117,7 +132,7 @@ class Game:
             for col in range(columns_count):
                 x = col * x_distance + x_offset
                 y = row * y_distance + y_offset
-                self.aliens.add(Alien(x, y))
+                self.aliens.add(Alien(x, y, "blue"))
 
     def create_bunker(self, x_start, y_start, offset_x):
         for row_index, row in enumerate(self.shape):
@@ -125,8 +140,7 @@ class Game:
                 if col == 'x':
                     x = x_start + col_index * self.block_size + offset_x
                     y = y_start + row_index * self.block_size
-                    block = Bunker_Block(self.block_size, x,
-                                         y)
+                    block = Bunker_Block(self.block_size, x, y)
                     self.blocks.add(block)
 
     def create_bunkers(self, *offset, x_start, y_start):
@@ -140,7 +154,7 @@ class Game:
             self.mystery_spawn_time = random.randint(500, 1000)
 
     def display_lives(self):
-        for live in range(self.lives - 1):
+        for live in range(self.lives):
             x = self.live_x_start_pos + (
                         live * (self.live_img.get_size()[0] + 10))
             self.screen.blit(self.live_img, (x, 8))

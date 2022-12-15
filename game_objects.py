@@ -50,12 +50,13 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Alien(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, color):
         super().__init__()
-        self.image = pygame.image.load("textures/alien1.png")
+        self.image = pygame.image.load(f"textures/alien_{color}.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 1
+        self.prize = 100
 
     def update(self, direction):
         self.rect.x += self.speed * direction
