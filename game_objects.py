@@ -50,13 +50,16 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Alien(pygame.sprite.Sprite):
+    aliens_prices = {"blue": 100, "brown": 150, "yellow": 200, "red": 250,
+                     "green": 300, "purple": 400}
+
     def __init__(self, x, y, color):
         super().__init__()
         self.image = pygame.image.load(f"textures/alien_{color}.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 1
-        self.prize = 100
+        self.price = Alien.aliens_prices[color]
 
     def update(self, direction):
         self.rect.x += self.speed * direction
@@ -85,6 +88,6 @@ class MysteryShip(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.speed
-        if self.speed > 0 and self.rect.left > self.screen_width or\
+        if self.speed > 0 and self.rect.left > self.screen_width or \
                 self.speed < 0 and self.rect.right <= 0:
             self.kill()

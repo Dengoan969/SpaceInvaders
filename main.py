@@ -3,6 +3,12 @@ import sys
 import random
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
+# TODO: ускорять пришельцев, разные уровни, экран победы и проигрыша,
+#  таблица рекордов
+#  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
+#   редактор уровней, SAVE & LOAD, PAUSE, музыка, полупрозрачные бункеры,
+#   пасхалки, бонусы
+
 
 class Game:
     def __init__(self):
@@ -77,6 +83,7 @@ class Game:
 
         self.display_score()
         self.display_lives()
+        self.victory_message()
 
         pygame.display.update()
 
@@ -87,7 +94,7 @@ class Game:
                     pygame.sprite.spritecollide(bullet, self.blocks, True):
                 bullet.kill()
                 for alien in hit_aliens:
-                    self.score += alien.prize
+                    self.score += alien.price
             if pygame.sprite.spritecollide(bullet, self.mystery, True):
                 bullet.kill()
                 self.score += 500
@@ -95,7 +102,7 @@ class Game:
         for bullet in self.alien_bullets:
             if pygame.sprite.spritecollide(bullet, self.blocks, True):
                 bullet.kill()
-            if pygame.sprite.spritecollide(bullet,self.ship, True):
+            if pygame.sprite.spritecollide(bullet, self.ship, True):
                 bullet.kill()
                 self.lives -= 1
                 if self.lives < 0:
@@ -160,9 +167,16 @@ class Game:
             self.screen.blit(self.live_img, (x, 8))
 
     def display_score(self):
-        score_surf = self.font.render(f'Score: {self.score}', False, 'white')
+        score_surf = self.font.render(f'Score: {self.score}', True, 'white')
         score_rect = score_surf.get_rect(topleft=(20, 10))
         self.screen.blit(score_surf, score_rect)
+
+    def victory_message(self):
+        if not self.aliens.sprites():
+            victory_surf = self.font.render('Win!', True, 'white')
+            victory_rect = victory_surf.get_rect(
+                center=(self.screen_width / 2, self.screen_height / 2))
+            self.screen.blit(victory_surf, victory_rect)
 
 
 def main():
