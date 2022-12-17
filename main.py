@@ -60,8 +60,8 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                    with open("savegame", "wb") as f:
-                        pickle.dump(self, f)
+                    # with open("savegame", "wb") as f:
+                    #     pickle.dump(self, f)
                 if event.type == ALIENSHOOT and not self.is_paused:
                     self.aliens_shoot()
             self.update()
@@ -205,11 +205,12 @@ def main():
     size = 1350, 1080
     pygame.display.set_mode(size)
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
-    try:
-        with open("savegame", "rb") as f:
-            game = pickle.load(f)
-    except (FileNotFoundError, EOFError):
-        game = Game()
+    # try:
+    #     with open("savegame", "rb") as f:
+    #         game = pickle.load(f)
+    # except (FileNotFoundError, EOFError):
+    #     game = Game()
+    game = Game()
     game.run()
 
 
