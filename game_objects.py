@@ -58,11 +58,10 @@ class Alien(pygame.sprite.Sprite):
         self.image = pygame.image.load(f"textures/alien_{color}.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.speed = 1
         self.price = Alien.aliens_prices[color]
 
-    def update(self, direction):
-        self.rect.x += self.speed * direction
+    def update(self, direction, speed):
+        self.rect.x += speed * direction
 
 
 class Bunker_Block(pygame.sprite.Sprite):

@@ -5,8 +5,7 @@ import sys
 import random
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
-# TODO: ускорять пришельцев, разные уровни, экран победы и проигрыша,
-#  таблица рекордов
+# TODO: разные уровни, экран победы и проигрыша, таблица рекордов
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
 #   редактор уровней, SAVE & LOAD, музыка,
 #   пасхалки, бонусы
@@ -31,6 +30,7 @@ class Game:
         self.alien_bullets = pygame.sprite.Group()
         self.create_aliens(5, 11)
         self.aliens_direction = 1
+        self.aliens_speed = 1
         self.mystery_spawn_time = random.randint(500, 1000)
         self.mystery = pygame.sprite.GroupSingle()
 
@@ -85,7 +85,7 @@ class Game:
 
         self.aliens_position_check()
         self.alien_bullets.update()
-        self.aliens.update(self.aliens_direction)
+        self.aliens.update(self.aliens_direction, self.aliens_speed)
 
     def update(self):
         self.screen.fill((0, 0, 0))
@@ -104,6 +104,7 @@ class Game:
             for alien in hit_aliens:
                 bullet.kill()
                 self.score += alien.price
+                self.aliens_speed += 0.1
             bunker_blocks = pygame.sprite.spritecollide(bullet, self.blocks,
                                                         False)
             for block in bunker_blocks:
@@ -193,11 +194,12 @@ class Game:
             victory_rect = victory_surf.get_rect(
                 center=(self.screen_width / 2, self.screen_height / 2))
             self.screen.blit(victory_surf, victory_rect)
+            self.is_paused = True
 
 
 def main():
     pygame.init()
-    size = 1350, 1080
+    size = 1920, 1080
     pygame.display.set_mode(size)
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
     game = Game()
