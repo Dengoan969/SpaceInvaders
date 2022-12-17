@@ -66,11 +66,12 @@ class Alien(pygame.sprite.Sprite):
 
 
 class Bunker_Block(pygame.sprite.Sprite):
-    def __init__(self, size, x, y):
+    def __init__(self, size, x, y, is_translucent):
         super().__init__()
         self.image = pygame.Surface((size, size))
         self.image.fill((255, 255, 255))
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.is_translucent = is_translucent
 
 
 class MysteryShip(pygame.sprite.Sprite):

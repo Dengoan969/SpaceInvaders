@@ -1,3 +1,5 @@
+import time
+
 import pygame
 import sys
 import random
@@ -6,7 +8,7 @@ from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 # TODO: ускорять пришельцев, разные уровни, экран победы и проигрыша,
 #  таблица рекордов
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
-#   редактор уровней, SAVE & LOAD, PAUSE, музыка, полупрозрачные бункеры,
+#   редактор уровней, SAVE & LOAD, музыка,
 #   пасхалки, бонусы
 
 
@@ -45,6 +47,7 @@ class Game:
                             y_start=self.screen_height - 250)
 
         self.is_finished = False
+        self.is_paused = False
 
     def run(self):
         run = True
@@ -56,12 +59,22 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                if event.type == ALIENSHOOT:
+                if event.type == ALIENSHOOT and not self.is_paused:
                     self.aliens_shoot()
             self.update()
 
-    def update(self):
-        self.screen.fill((0, 0, 0))
+    def gameplay_draw(self):
+        self.blocks.draw(self.screen)
+        self.mystery.draw(self.screen)
+        self.ship.sprite.bullets.draw(self.screen)
+        self.ship.draw(self.screen)
+        self.aliens.draw(self.screen)
+        self.alien_bullets.draw(self.screen)
+        self.display_score()
+        self.display_lives()
+        self.victory_message()
+
+    def gameplay_update(self):
         self.ship.update()
         self.ship.sprite.bullets.update()
 
@@ -74,27 +87,30 @@ class Game:
         self.alien_bullets.update()
         self.aliens.update(self.aliens_direction)
 
-        self.blocks.draw(self.screen)
-        self.mystery.draw(self.screen)
-        self.ship.sprite.bullets.draw(self.screen)
-        self.ship.draw(self.screen)
-        self.aliens.draw(self.screen)
-        self.alien_bullets.draw(self.screen)
-
-        self.display_score()
-        self.display_lives()
-        self.victory_message()
-
+    def update(self):
+        self.screen.fill((0, 0, 0))
+        key = pygame.key.get_pressed()
+        if key[pygame.K_ESCAPE]:
+            self.is_paused = not self.is_paused
+            time.sleep(0.2)
+        if not self.is_paused and not self.is_finished:
+            self.gameplay_update()
+        self.gameplay_draw()
         pygame.display.update()
 
     def collision_check(self):
         for bullet in self.ship.sprite.bullets:
             hit_aliens = pygame.sprite.spritecollide(bullet, self.aliens, True)
-            if hit_aliens or \
-                    pygame.sprite.spritecollide(bullet, self.blocks, True):
+            for alien in hit_aliens:
                 bullet.kill()
-                for alien in hit_aliens:
-                    self.score += alien.price
+                self.score += alien.price
+            bunker_blocks = pygame.sprite.spritecollide(bullet, self.blocks,
+                                                        False)
+            for block in bunker_blocks:
+                if not block.is_translucent:
+                    block.kill()
+                    bullet.kill()
+
             if pygame.sprite.spritecollide(bullet, self.mystery, True):
                 bullet.kill()
                 self.score += 500
@@ -147,7 +163,7 @@ class Game:
                 if col == 'x':
                     x = x_start + col_index * self.block_size + offset_x
                     y = y_start + row_index * self.block_size
-                    block = Bunker_Block(self.block_size, x, y)
+                    block = Bunker_Block(self.block_size, x, y, True)
                     self.blocks.add(block)
 
     def create_bunkers(self, *offset, x_start, y_start):
