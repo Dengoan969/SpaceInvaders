@@ -6,7 +6,7 @@ import random
 import pickle
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
-# TODO: разные уровни, экран победы и проигрыша, таблица рекордов
+# TODO: разные уровни, экран победы и проигрыша, таблица рекордов, меню
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
 #   редактор уровней, SAVE & LOAD, музыка,
 #   пасхалки, бонусы
@@ -29,7 +29,7 @@ class Game:
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
-        self.create_aliens(5, 11)
+        self.create_aliens(10, 11)
         self.aliens_direction = 1
         self.aliens_speed = 1
         self.mystery_spawn_time = random.randint(500, 1000)
