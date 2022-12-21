@@ -7,7 +7,7 @@ import pickle
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
 
-# TODO: разные уровни, экран победы и проигрыша, таблица рекордов, меню
+# TODO: таблица рекордов, меню
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
 #   редактор уровней, SAVE & LOAD, музыка,
 #   пасхалки, бонусы
@@ -21,13 +21,14 @@ class Game:
         ship = Ship(self.screen_width // 2, self.screen_height - 100)
         self.ship = pygame.sprite.GroupSingle(ship)
 
-        self.lives = 2
+        self.lives = 0
         self.live_img = pygame.image.load(
             'textures/ship.png').convert()
         self.live_x_start_pos = self.screen_width - (
                 self.live_img.get_size()[0] * 2 + 20)
         self.score = 0
         self.font = pygame.font.SysFont('pixeled', 40)
+        self.big_font = pygame.font.SysFont('pixeled', 72)
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
@@ -64,20 +65,24 @@ class Game:
                     run = False
                     # with open("savegame", "wb") as f:
                     #     pickle.dump(self, f)
-                if event.type == ALIENSHOOT and not self.is_paused:
+                if event.type == ALIENSHOOT and not self.is_paused and not self.is_finished:
                     self.aliens_shoot()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r and self.is_finished:
+                    run = False
             self.update()
 
     def gameplay_draw(self):
         self.blocks.draw(self.screen)
         self.mystery.draw(self.screen)
-        self.ship.sprite.bullets.draw(self.screen)
-        self.ship.draw(self.screen)
+        if not self.is_finished:
+            self.ship.sprite.bullets.draw(self.screen)
+            self.ship.draw(self.screen)
         self.aliens.draw(self.screen)
         self.alien_bullets.draw(self.screen)
         self.display_score()
         self.display_lives()
         self.victory_message()
+        self.lose_message()
 
     def gameplay_update(self):
         self.ship.update()
@@ -98,6 +103,8 @@ class Game:
         if key[pygame.K_ESCAPE]:
             self.is_paused = not self.is_paused
             time.sleep(0.2)
+
+
         if not self.is_paused and not self.is_finished:
             self.gameplay_update()
         self.gameplay_draw()
@@ -127,11 +134,10 @@ class Game:
             if pygame.sprite.spritecollide(bullet, self.ship, True):
                 bullet.kill()
                 self.lives -= 1
-                if self.lives < 0:
-                    pygame.quit()
-                    sys.exit()
-                ship = Ship(self.screen_width // 2, self.screen_height - 100)
-                self.ship = pygame.sprite.GroupSingle(ship)
+                self.lose_message()
+                if self.lives >=0:
+                    ship = Ship(self.screen_width // 2, self.screen_height - 100)
+                    self.ship = pygame.sprite.GroupSingle(ship)
 
     def aliens_position_check(self):
         for alien in self.aliens:
@@ -207,11 +213,19 @@ class Game:
 
     def victory_message(self):
         if not self.aliens.sprites():
-            victory_surf = self.font.render('Win!', True, 'white')
+            victory_surf = self.big_font.render('You Win!', True, 'white')
             victory_rect = victory_surf.get_rect(
                 center=(self.screen_width / 2, self.screen_height / 2))
             self.screen.blit(victory_surf, victory_rect)
-            self.is_paused = True
+            self.is_finished = True
+
+    def lose_message(self):
+        if self.lives < 0:
+            lose_surf = self.big_font.render('You Lose!', True, 'white')
+            lose_rect = lose_surf.get_rect(
+                center=(self.screen_width / 2, self.screen_height / 2))
+            self.screen.blit(lose_surf, lose_rect)
+            self.is_finished = True
 
 
 def main():
@@ -225,7 +239,7 @@ def main():
     # except (FileNotFoundError, EOFError):
     #     game = Game()
     levels = 10
-    for i in range(3, levels + 1, 1):
+    for i in range(1, levels + 1, 1):
         game = Game(i)
         game.run()
 
