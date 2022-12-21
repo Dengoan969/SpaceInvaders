@@ -102,7 +102,7 @@ class Bonus(pygame.sprite.Sprite):
         super().__init__()
         self.bonus_type = bonus_type
         self.buffer = None
-        self.time = 5000
+        self.time = 500
         self.screen_height = pygame.display.get_surface().get_height()
         self.image = pygame.image.load(f"textures/bonus_{bonus_type}.jpg")
         self.rect = self.image.get_rect()

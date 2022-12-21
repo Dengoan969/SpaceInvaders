@@ -53,6 +53,11 @@ class Game:
             num * (self.screen_width / self.bunker_amount) for num in
             range(self.bunker_amount)]
         self.create_level()
+        music = pygame.mixer.Sound("audio/level_music.wav")
+        music.set_volume(0.2)
+        music.play(loops=-1)
+        self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
+        self.laser_sound.set_volume(0.3)
         self.is_finished = False
         self.is_paused = False
 
@@ -172,6 +177,7 @@ class Game:
             laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 5,
                                   True)
             self.alien_bullets.add(laser_sprite)
+            self.laser_sound.play()
 
     def create_level(self):
         with open(f"Levels\\{self.level}.txt") as f:
