@@ -6,6 +6,7 @@ import random
 import pickle
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
+
 # TODO: разные уровни, экран победы и проигрыша, таблица рекордов, меню
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
 #   редактор уровней, SAVE & LOAD, музыка,
@@ -13,9 +14,10 @@ from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, level):
         self.screen = pygame.display.get_surface()
         self.screen_width, self.screen_height = self.screen.get_size()
+        self.level = level
         ship = Ship(self.screen_width // 2, self.screen_height - 100)
         self.ship = pygame.sprite.GroupSingle(ship)
 
@@ -29,11 +31,14 @@ class Game:
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
-        self.create_aliens(10, 11)
+
         self.aliens_direction = 1
         self.aliens_speed = 1
         self.mystery_spawn_time = random.randint(500, 1000)
         self.mystery = pygame.sprite.GroupSingle()
+        self.alien_types = {"B": "blue", "G": "green", "P": "purple",
+                            "R": "red", "S": "skin", "Y": "yellow"}
+        self.bunker_types = {"B": False, "T": True}
 
         with open('textures/BunkerShape.txt') as f:
             self.shape = f.readlines()
@@ -43,10 +48,7 @@ class Game:
         self.bunker_x_positions = [
             num * (self.screen_width / self.bunker_amount) for num in
             range(self.bunker_amount)]
-        self.create_bunkers(*self.bunker_x_positions,
-                            x_start=self.screen_width / 15,
-                            y_start=self.screen_height - 250)
-
+        self.create_level()
         self.is_finished = False
         self.is_paused = False
 
@@ -153,26 +155,38 @@ class Game:
                                   True)
             self.alien_bullets.add(laser_sprite)
 
-    def create_aliens(self, rows_count, columns_count,
-                      x_distance=80, y_distance=48, x_offset=70, y_offset=100):
-        for row in range(rows_count):
-            for col in range(columns_count):
-                x = col * x_distance + x_offset
-                y = row * y_distance + y_offset
-                self.aliens.add(Alien(x, y, "blue"))
+    def create_level(self):
+        with open(f"Levels\\{self.level}.txt") as f:
+            is_bunkers = False
+            lines = f.read().splitlines()
+            for row_index, row in enumerate(lines):
+                if row == "":
+                    is_bunkers = True
+                    continue
+                for col_index, col in enumerate(row):
+                    if col != "*":
+                        if is_bunkers:
+                            self.create_bunker(self.screen_width / 15,
+                                               self.screen_height - 250,
+                                               self.bunker_x_positions[
+                                                   col_index], self.bunker_types[col])
+                        else:
+                            self.create_alien(col_index, row_index, self.alien_types[col])
 
-    def create_bunker(self, x_start, y_start, offset_x):
+    def create_alien(self, col_index, row_index, alien_type,
+                     x_distance=80, y_distance=48, x_offset=70, y_offset=100):
+        x = col_index * x_distance + x_offset
+        y = row_index * y_distance + y_offset
+        self.aliens.add(Alien(x, y, alien_type))
+
+    def create_bunker(self, x_start, y_start, offset_x, is_translucent):
         for row_index, row in enumerate(self.shape):
             for col_index, col in enumerate(row):
                 if col == 'x':
                     x = x_start + col_index * self.block_size + offset_x
                     y = y_start + row_index * self.block_size
-                    block = Bunker_Block(self.block_size, x, y, True)
+                    block = Bunker_Block(self.block_size, x, y, is_translucent)
                     self.blocks.add(block)
-
-    def create_bunkers(self, *offset, x_start, y_start):
-        for offset_x in offset:
-            self.create_bunker(x_start, y_start, offset_x)
 
     def extra_alien_timer(self):
         self.mystery_spawn_time -= 1
@@ -183,7 +197,7 @@ class Game:
     def display_lives(self):
         for live in range(self.lives):
             x = self.live_x_start_pos + (
-                        live * (self.live_img.get_size()[0] + 10))
+                    live * (self.live_img.get_size()[0] + 10))
             self.screen.blit(self.live_img, (x, 8))
 
     def display_score(self):
@@ -210,8 +224,10 @@ def main():
     #         game = pickle.load(f)
     # except (FileNotFoundError, EOFError):
     #     game = Game()
-    game = Game()
-    game.run()
+    levels = 10
+    for i in range(3, levels + 1, 1):
+        game = Game(i)
+        game.run()
 
 
 if __name__ == '__main__':

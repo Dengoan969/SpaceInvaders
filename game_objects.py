@@ -50,7 +50,7 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Alien(pygame.sprite.Sprite):
-    aliens_prices = {"blue": 100, "brown": 150, "yellow": 200, "red": 250,
+    aliens_prices = {"blue": 100, "skin": 150, "yellow": 200, "red": 250,
                      "green": 300, "purple": 400}
 
     def __init__(self, x, y, color):
@@ -68,7 +68,11 @@ class Bunker_Block(pygame.sprite.Sprite):
     def __init__(self, size, x, y, is_translucent):
         super().__init__()
         self.image = pygame.Surface((size, size))
-        self.image.fill((255, 255, 255))
+        if is_translucent:
+            color = (128, 128, 128)
+        else:
+            color = (255, 255, 255)
+        self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.is_translucent = is_translucent
 
