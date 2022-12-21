@@ -95,3 +95,45 @@ class MysteryShip(pygame.sprite.Sprite):
         if self.speed > 0 and self.rect.left > self.screen_width or \
                 self.speed < 0 and self.rect.right <= 0:
             self.kill()
+
+
+class Bonus(pygame.sprite.Sprite):
+    def __init__(self, x, y, bonus_type):
+        super().__init__()
+        self.bonus_type = bonus_type
+        self.buffer = None
+        self.time = 5000
+        self.screen_height = pygame.display.get_surface().get_height()
+        self.image = pygame.image.load(f"textures/bonus_{bonus_type}.jpg")
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def update(self):
+        self.rect.y += 2
+        if self.rect.top >= self.screen_height:
+            self.kill()
+
+    def effect(self, game):
+        if self.bonus_type == "freeze":
+            self.buffer = game.aliens_speed
+            game.aliens_speed = 0
+        elif self.bonus_type == "life":
+            game.lives += 1
+        elif self.bonus_type == "fast":
+            self.buffer = game.ship.sprite.cooldown
+            game.ship.sprite.cooldown /= 2
+
+    def effect_undo(self, game):
+        if self.bonus_type == "freeze":
+            game.aliens_speed += self.buffer
+        elif self.bonus_type == "fast":
+            game.ship.sprite.cooldown = self.buffer
+
+    def timer(self, game):
+        self.time -= 1
+        if self.time < 0:
+            self.effect_undo(game)
+            self.kill()
+
+    # def __eq__(self, other):
+    #     return other.bonus_type == self.bonus_type

@@ -4,13 +4,13 @@ import pygame
 import sys
 import random
 import pickle
-from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip
+from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
 # TODO: таблица рекордов, меню
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
 #   редактор уровней, SAVE & LOAD, музыка,
-#   пасхалки, бонусы
+#   пасхалки
 
 
 class Game:
@@ -37,6 +37,9 @@ class Game:
         self.aliens_speed = 1
         self.mystery_spawn_time = random.randint(500, 1000)
         self.mystery = pygame.sprite.GroupSingle()
+        self.bonuses = pygame.sprite.Group()
+        self.active_bonuses = pygame.sprite.Group()
+        self.bonuses_spawn_time = random.randint(5, 10)
         self.alien_types = {"B": "blue", "G": "green", "P": "purple",
                             "R": "red", "S": "skin", "Y": "yellow"}
         self.bunker_types = {"B": False, "T": True}
@@ -74,6 +77,7 @@ class Game:
     def gameplay_draw(self):
         self.blocks.draw(self.screen)
         self.mystery.draw(self.screen)
+        self.bonuses.draw(self.screen)
         if not self.is_finished:
             self.ship.sprite.bullets.draw(self.screen)
             self.ship.draw(self.screen)
@@ -91,7 +95,9 @@ class Game:
         self.collision_check()
 
         self.extra_alien_timer()
+        self.active_bonuses_timer()
         self.mystery.update()
+        self.bonuses.update()
 
         self.aliens_position_check()
         self.alien_bullets.update()
@@ -103,8 +109,6 @@ class Game:
         if key[pygame.K_ESCAPE]:
             self.is_paused = not self.is_paused
             time.sleep(0.2)
-
-
         if not self.is_paused and not self.is_finished:
             self.gameplay_update()
         self.gameplay_draw()
@@ -115,6 +119,7 @@ class Game:
             hit_aliens = pygame.sprite.spritecollide(bullet, self.aliens, True)
             for alien in hit_aliens:
                 bullet.kill()
+                self.bonuses_timer(alien.rect.x, alien.rect.y)
                 self.score += alien.price
                 self.aliens_speed += 0.1
             bunker_blocks = pygame.sprite.spritecollide(bullet, self.blocks,
@@ -135,9 +140,16 @@ class Game:
                 bullet.kill()
                 self.lives -= 1
                 self.lose_message()
-                if self.lives >=0:
+                if self.lives >= 0:
                     ship = Ship(self.screen_width // 2, self.screen_height - 100)
                     self.ship = pygame.sprite.GroupSingle(ship)
+
+        for bonus in self.bonuses:
+            if pygame.sprite.spritecollide(bonus, self.ship, False):
+                bonus.kill()
+                if bonus not in self.active_bonuses:
+                    bonus.effect(self)
+                    self.active_bonuses.add(bonus)
 
     def aliens_position_check(self):
         for alien in self.aliens:
@@ -199,6 +211,16 @@ class Game:
         if self.mystery_spawn_time <= 0:
             self.mystery.add(MysteryShip(random.choice([-1, 1])))
             self.mystery_spawn_time = random.randint(500, 1000)
+
+    def bonuses_timer(self, x, y):
+        self.bonuses_spawn_time -= 1
+        if self.bonuses_spawn_time <= 0:
+            self.bonuses.add(Bonus(x, y, random.choice(["freeze", "fast", "life"])))
+            self.bonuses_spawn_time = random.randint(5, 10)
+
+    def active_bonuses_timer(self):
+        for bonus in self.active_bonuses:
+            bonus.timer(self)
 
     def display_lives(self):
         for live in range(self.lives):
