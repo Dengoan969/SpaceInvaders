@@ -9,8 +9,7 @@ from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 # TODO: таблица рекордов, меню
 #  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
-#   редактор уровней, SAVE & LOAD, музыка,
-#   пасхалки
+#   редактор уровней, SAVE & LOAD, пасхалки
 
 
 class Game:
@@ -54,7 +53,7 @@ class Game:
             range(self.bunker_amount)]
         self.create_level()
         music = pygame.mixer.Sound("audio/level_music.wav")
-        music.set_volume(0.2)
+        music.set_volume(1)
         music.play(loops=-1)
         self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
         self.laser_sound.set_volume(0.3)
