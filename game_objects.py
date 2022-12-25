@@ -12,6 +12,7 @@ class Ship(pygame.sprite.Sprite):
         self.last_shot = pygame.time.get_ticks()
         self.cooldown = 500
         self.screen_width = pygame.display.get_surface().get_width()
+        self.is_diagonal_shoot = False
 
     def update(self):
         self.handle_input()
@@ -26,25 +27,35 @@ class Ship(pygame.sprite.Sprite):
         time_now = pygame.time.get_ticks()
         if (key[pygame.K_SPACE] or key[pygame.K_UP]) and \
                 time_now - self.last_shot > self.cooldown:
-            bullet = Bullet(self.rect.centerx, self.rect.top, -5, False)
+            if self.is_diagonal_shoot:
+                bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5, False)
+                self.bullets.add(bullet)
+                bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5, False)
+                self.bullets.add(bullet)
+            bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5, False)
             self.bullets.add(bullet)
             self.last_shot = time_now
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, speed, is_alien):
+    def __init__(self, x, y, speed_x, speed_y, is_alien):
         super().__init__()
         self.screen_height = pygame.display.get_surface().get_height()
         if is_alien:
             self.image = pygame.image.load("textures/alien_bullet.png")
+        # elif speed_x > 0:
+        #     self.image = pygame.image.load("textures/bullet_right.jpg")
+        # elif speed_x < 0:
+        #     self.image = pygame.image.load("textures/bullet_left.jpg")
         else:
             self.image = pygame.image.load("textures/bullet.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.speed = speed
+        self.speed = (speed_x, speed_y)
 
     def update(self):
-        self.rect.y += self.speed
+        self.rect.x += self.speed[0]
+        self.rect.y += self.speed[1]
         if self.rect.bottom <= 0 or self.rect.top >= self.screen_height:
             self.kill()
 
@@ -122,18 +133,19 @@ class Bonus(pygame.sprite.Sprite):
         elif self.bonus_type == "fast":
             self.buffer = game.ship.sprite.cooldown
             game.ship.sprite.cooldown /= 2
+        elif self.bonus_type == "bullets":
+            game.ship.sprite.is_diagonal_shoot = True
 
     def effect_undo(self, game):
         if self.bonus_type == "freeze":
             game.aliens_speed += self.buffer
         elif self.bonus_type == "fast":
             game.ship.sprite.cooldown = self.buffer
+        elif self.bonus_type == "bullets":
+            game.ship.sprite.is_diagonal_shoot = False
 
     def timer(self, game):
         self.time -= 1
         if self.time < 0:
             self.effect_undo(game)
             self.kill()
-
-    # def __eq__(self, other):
-    #     return other.bonus_type == self.bonus_type

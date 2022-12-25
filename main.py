@@ -8,8 +8,7 @@ from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
 # TODO: таблица рекордов, меню
-#  TODO: ADDITIONAL: Стрельба в разные стороны (бонус),
-#   редактор уровней, SAVE & LOAD, пасхалки
+#  TODO: ADDITIONAL: Стрельба в разные стороны (бонус)
 
 
 class Game:
@@ -173,7 +172,7 @@ class Game:
     def aliens_shoot(self):
         if self.aliens.sprites():
             alien = random.choice(self.aliens.sprites())
-            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 5,
+            laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 0, 5,
                                   True)
             self.alien_bullets.add(laser_sprite)
             self.laser_sound.play()
@@ -220,7 +219,7 @@ class Game:
     def bonuses_timer(self, x, y):
         self.bonuses_spawn_time -= 1
         if self.bonuses_spawn_time <= 0:
-            self.bonuses.add(Bonus(x, y, random.choice(["freeze", "fast", "life"])))
+            self.bonuses.add(Bonus(x, y, random.choice(["freeze", "fast", "life", "bullets"])))
             self.bonuses_spawn_time = random.randint(5, 10)
 
     def active_bonuses_timer(self):
