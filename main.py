@@ -1,14 +1,17 @@
 import time
 
 import pygame
+import pygame_menu
 import sys
 import random
 import pickle
+
+from pygame_menu import Theme
+
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
-# TODO: таблица рекордов, меню
-#  TODO: ADDITIONAL: Стрельба в разные стороны (бонус)
+# TODO: таблица рекордов
 
 
 class Game:
@@ -257,17 +260,21 @@ class Game:
 def main():
     pygame.init()
     size = 1350, 1080
-    pygame.display.set_mode(size)
+    surface = pygame.display.set_mode(size)
+    weight,height=surface.get_size()
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
-    # try:
-    #     with open("savegame", "rb") as f:
-    #         game = pickle.load(f)
-    # except (FileNotFoundError, EOFError):
-    #     game = Game()
-    levels = 10
-    for i in range(1, levels + 1, 1):
-        game = Game(i)
-        game.run()
+    mytheme = Theme(background_color=(0, 0, 0, 0), widget_font=pygame_menu.font.FONT_8BIT,
+                    title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
+                    widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
+                    widget_font_size=48,
+                    title_font_size=72)
+    menu = pygame_menu.Menu("Space Invaders", 1350, 1080,
+                            theme=mytheme)
+    game = Game(1)
+    menu.add.button('Play', game.run)
+    menu.add.button('Exit', pygame_menu.events.EXIT)
+    menu.mainloop(surface)
+
 
 
 if __name__ == '__main__':
