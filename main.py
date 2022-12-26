@@ -1,8 +1,9 @@
 import time
-
+from datetime import datetime
 import pygame
 import pygame_menu
 import sys
+
 import random
 import pickle
 
@@ -47,6 +48,10 @@ class Game:
 
         with open('textures/BunkerShape.txt') as f:
             self.shape = f.readlines()
+        self.scores_table = []
+        with open('bestScores.txt') as f:
+            for line in f:
+                self.scores_table.append(line)
         self.block_size = 15
         self.blocks = pygame.sprite.Group()
         self.bunker_amount = 4
@@ -256,12 +261,29 @@ class Game:
             self.screen.blit(lose_surf, lose_rect)
             self.is_finished = True
 
+    def get_score_table(self, current_score):
+        score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        score_record = f"{current_score} {score_time}"
+        try:
+            with open('score_table.dat', 'rb') as file:
+                score_table = pickle.load(file)
+        except: # TODO: ADD EXCEPTIONS
+            score_table = [score_record]
+        for i in range(len(score_table)):
+            score = int(score_table[i].split()[0])
+            if current_score > score:
+                score_table.insert(i, score_record)
+                break
+        if len(score_table) > 10:
+            score_table.pop()
+        with open('score_table.dat', 'wb') as file:
+            pickle.dump(score_table, file)
+        return score_table
 
 def main():
     pygame.init()
     size = 1350, 1080
     surface = pygame.display.set_mode(size)
-    weight,height=surface.get_size()
     pygame.display.set_caption('Space Invaders | By Denis and Isa')
     mytheme = Theme(background_color=(0, 0, 0, 0), widget_font=pygame_menu.font.FONT_8BIT,
                     title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
