@@ -5,6 +5,8 @@ class Ship(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.image.load('textures/ship.png').convert()
+        self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
+        self.laser_sound.set_volume(0.3)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 5
@@ -27,6 +29,7 @@ class Ship(pygame.sprite.Sprite):
         time_now = pygame.time.get_ticks()
         if (key[pygame.K_SPACE] or key[pygame.K_UP]) and \
                 time_now - self.last_shot > self.cooldown:
+            self.laser_sound.play()
             if self.is_diagonal_shoot:
                 bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5, False)
                 self.bullets.add(bullet)
@@ -44,7 +47,7 @@ class Bullet(pygame.sprite.Sprite):
         if is_alien:
             self.image = pygame.image.load("textures/alien_bullet.png")
         elif speed_x != 0:
-            self.image = pygame.image.load("textures/bullet_right.jpg")
+            self.image = pygame.image.load("textures/bullet_diagonal.jpg")
         else:
             self.image = pygame.image.load("textures/bullet.png")
         self.rect = self.image.get_rect()

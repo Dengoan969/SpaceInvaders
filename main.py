@@ -12,7 +12,7 @@ class GameLevel:
     def __init__(self, level):
         self.screen = pygame.display.get_surface()
         self.screen_width, self.screen_height = self.screen.get_size()
-        self.level = level
+
         ship = Ship(self.screen_width // 2, self.screen_height - 100)
         self.ship = pygame.sprite.GroupSingle(ship)
 
@@ -21,37 +21,37 @@ class GameLevel:
             'textures/ship.png').convert()
         self.live_x_start_pos = self.screen_width - (
                 self.live_img.get_size()[0] * 2 + 20)
+
         self.score = 0
+
         self.font = pygame.font.SysFont('pixeled', 40)
         self.big_font = pygame.font.SysFont('pixeled', 72)
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
-
         self.aliens_direction = 1
         self.aliens_speed = 1
+
         self.mystery_spawn_time = random.randint(500, 1000)
         self.mystery = pygame.sprite.GroupSingle()
         self.bonuses = pygame.sprite.Group()
         self.active_bonuses = pygame.sprite.Group()
-        self.bonuses_spawn_time = random.randint(5, 10)
-        self.alien_types = {"B": "blue", "G": "green", "P": "purple",
-                            "R": "red", "S": "skin", "Y": "yellow"}
-        self.bunker_types = {"B": False, "T": True}
+        self.bonuses_spawn_kills = random.randint(5, 10)
 
         with open('textures/BunkerShape.txt') as f:
-            self.shape = f.readlines()
-        self.scores_table = []
-        with open('bestScores.txt') as f:
-            for line in f:
-                self.scores_table.append(line)
+            self.bunker_shape = f.readlines()
+
+        # self.scores_table = []
+        # with open('bestScores.txt') as f:
+        #     for line in f:
+        #         self.scores_table.append(line)
+
         self.block_size = 15
         self.blocks = pygame.sprite.Group()
-        self.bunker_amount = 4
         self.bunker_x_positions = [
-            num * (self.screen_width / self.bunker_amount) for num in
-            range(self.bunker_amount)]
-        self.create_level()
+            num * (self.screen_width / 4) for num in
+            range(4)]
+        self.create_level(level)
         music = pygame.mixer.Sound("audio/level_music.wav")
         music.set_volume(1)
         music.play(loops=-1)
@@ -74,8 +74,9 @@ class GameLevel:
                     run = False
                 if event.type == ALIENSHOOT and not self.is_paused and not self.is_finished:
                     self.aliens_shoot()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_r and self.is_finished:
-                    run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.is_game_continue()
             self.update()
 
     def gameplay_draw(self):
@@ -178,8 +179,12 @@ class GameLevel:
             self.alien_bullets.add(laser_sprite)
             self.laser_sound.play()
 
-    def create_level(self):
-        with open(f"Levels\\{self.level}.txt") as f:
+    alien_types = {"B": "blue", "G": "green", "P": "purple",
+                   "R": "red", "S": "skin", "Y": "yellow"}
+    bunker_types = {"B": False, "T": True}
+
+    def create_level(self, level):
+        with open(f"Levels\\{level}.txt") as f:
             is_bunkers = False
             lines = f.read().splitlines()
             for row_index, row in enumerate(lines):
@@ -192,9 +197,9 @@ class GameLevel:
                             self.create_bunker(self.screen_width / 15,
                                                self.screen_height - 250,
                                                self.bunker_x_positions[
-                                                   col_index], self.bunker_types[col])
+                                                   col_index], GameLevel.bunker_types[col])
                         else:
-                            self.create_alien(col_index, row_index, self.alien_types[col])
+                            self.create_alien(col_index, row_index, GameLevel.alien_types[col])
 
     def create_alien(self, col_index, row_index, alien_type,
                      x_distance=80, y_distance=48, x_offset=70, y_offset=100):
@@ -203,7 +208,7 @@ class GameLevel:
         self.aliens.add(Alien(x, y, alien_type))
 
     def create_bunker(self, x_start, y_start, offset_x, is_translucent):
-        for row_index, row in enumerate(self.shape):
+        for row_index, row in enumerate(self.bunker_shape):
             for col_index, col in enumerate(row):
                 if col == 'x':
                     x = x_start + col_index * self.block_size + offset_x
@@ -218,10 +223,10 @@ class GameLevel:
             self.mystery_spawn_time = random.randint(500, 1000)
 
     def bonuses_timer(self, x, y):
-        self.bonuses_spawn_time -= 1
-        if self.bonuses_spawn_time <= 0:
+        self.bonuses_spawn_kills -= 1
+        if self.bonuses_spawn_kills <= 0:
             self.bonuses.add(Bonus(x, y, random.choice(["freeze", "fast", "life", "bullets"])))
-            self.bonuses_spawn_time = random.randint(5, 10)
+            self.bonuses_spawn_kills = random.randint(5, 10)
 
     def active_bonuses_timer(self):
         for bonus in self.active_bonuses:
@@ -273,6 +278,21 @@ class GameLevel:
             pickle.dump(score_table, file)
         return score_table
 
+    def is_game_continue(self):
+        mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
+                                    widget_font=pygame_menu.font.FONT_8BIT,
+                                    title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
+                                    widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
+                                    widget_font_size=48,
+                                    title_font_size=72)
+        menu = pygame_menu.Menu("", self.screen_width,
+                                self.screen_height,
+                                theme=mytheme)
+        menu.add.button('Continue', self.run)
+        menu.add.button('Exit', pygame_menu.events.EXIT)
+        menu.mainloop(self.screen)
+        return True
+
 
 class Game:
     def __init__(self):
@@ -304,7 +324,7 @@ class Game:
             i+=1
 
     def is_game_restart(self):
-        menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
+        menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
         res = False
@@ -314,7 +334,7 @@ class Game:
         return res
 
     def is_game_continue(self):
-        menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
+        menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
         res = False
@@ -326,10 +346,8 @@ class Game:
 
 def main():
     pygame.init()
-
-
-
-
+    game = Game()
+    game.run()
 
 
 if __name__ == '__main__':
