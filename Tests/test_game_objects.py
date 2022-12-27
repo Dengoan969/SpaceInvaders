@@ -45,3 +45,48 @@ class TestGameObjects(unittest.TestCase):
         alien = Alien(5, 10, "blue")
         alien.update(-1, 5)
         assert alien.rect.centerx == 0
+
+    display = pygame.display.set_mode((1920, 1080))
+
+    def test_mystery_rect1(self):
+        mystery = MysteryShip(1)
+        assert mystery.rect.center == (-80, 50)
+
+    def test_mystery_rect2(self):
+        screen_width = pygame.display.get_surface().get_width()
+        mystery = MysteryShip(-1)
+        assert mystery.rect.center == (screen_width+80, 50)
+
+    def test_mystery_speed1(self):
+        mystery = MysteryShip(1)
+        assert mystery.speed == 3
+
+    def test_mystery_speed2(self):
+        mystery = MysteryShip(-1)
+        assert mystery.speed == -3
+
+    def test_mystery_update1(self):
+        mystery = MysteryShip(1)
+        old = mystery.rect.x
+        mystery.update()
+        assert mystery.rect.x == old + 3
+
+    def test_mystery_update2(self):
+        mystery = MysteryShip(-1)
+        old = mystery.rect.x
+        mystery.update()
+        assert mystery.rect.x == old - 3
+
+    def test_mystery_update3(self):
+        mystery = MysteryShip(1)
+        group = pygame.sprite.GroupSingle(mystery)
+        for i in range(682):
+            mystery.update()
+        assert not group.has(mystery)
+
+    def test_mystery_update4(self):
+        mystery = MysteryShip(-1)
+        group = pygame.sprite.GroupSingle(mystery)
+        for i in range(682):
+            mystery.update()
+        assert not group.has(mystery)
