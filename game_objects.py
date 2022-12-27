@@ -43,10 +43,8 @@ class Bullet(pygame.sprite.Sprite):
         self.screen_height = pygame.display.get_surface().get_height()
         if is_alien:
             self.image = pygame.image.load("textures/alien_bullet.png")
-        # elif speed_x > 0:
-        #     self.image = pygame.image.load("textures/bullet_right.jpg")
-        # elif speed_x < 0:
-        #     self.image = pygame.image.load("textures/bullet_left.jpg")
+        elif speed_x != 0:
+            self.image = pygame.image.load("textures/bullet_right.jpg")
         else:
             self.image = pygame.image.load("textures/bullet.png")
         self.rect = self.image.get_rect()

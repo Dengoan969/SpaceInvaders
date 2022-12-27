@@ -2,20 +2,13 @@ import time
 from datetime import datetime
 import pygame
 import pygame_menu
-import sys
-
 import random
 import pickle
-
-from pygame_menu import Theme
 
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
-# TODO: таблица рекордов
-
-
-class Game:
+class GameLevel:
     def __init__(self, level):
         self.screen = pygame.display.get_surface()
         self.screen_width, self.screen_height = self.screen.get_size()
@@ -66,6 +59,8 @@ class Game:
         self.laser_sound.set_volume(0.3)
         self.is_finished = False
         self.is_paused = False
+        self.is_lost = False
+        self.is_win = False
 
     def run(self):
         run = True
@@ -77,8 +72,6 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                    # with open("savegame", "wb") as f:
-                    #     pickle.dump(self, f)
                 if event.type == ALIENSHOOT and not self.is_paused and not self.is_finished:
                     self.aliens_shoot()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r and self.is_finished:
@@ -280,22 +273,62 @@ class Game:
             pickle.dump(score_table, file)
         return score_table
 
+
+class Game:
+    def __init__(self):
+        self.screen_size = 1350, 1080
+        self.surface = pygame.display.set_mode(self.screen_size)
+        pygame.display.set_caption('Space Invaders | By Denis and Isa')
+        self.mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
+                                         widget_font=pygame_menu.font.FONT_8BIT,
+                                         title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
+                                         widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
+                                         widget_font_size=48,
+                                         title_font_size=72)
+        menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
+                                self.screen_size[1],
+                                theme=self.mytheme)
+        menu.add.button('Play', self.run)
+        menu.add.button('Exit', pygame_menu.events.EXIT)
+        menu.mainloop(self.surface)
+
+    def run(self):
+        i = 1
+        while i < 11:
+            level = GameLevel(i)
+            level.run()
+            if level.is_lost and self.is_game_restart():
+                i = 0
+            if level.is_win:
+                self.is_game_continue()
+            i+=1
+
+    def is_game_restart(self):
+        menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
+                                self.screen_size[1],
+                                theme=self.mytheme)
+        res = False
+        menu.add.button('Restart', res = True)
+        menu.add.button('Exit', pygame_menu.events.EXIT)
+        menu.mainloop(self.surface)
+        return res
+
+    def is_game_continue(self):
+        menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
+                                self.screen_size[1],
+                                theme=self.mytheme)
+        res = False
+        menu.add.button('Next Level', res = True)
+        menu.add.button('Exit', pygame_menu.events.EXIT)
+        menu.mainloop(self.surface)
+        return res
+
+
 def main():
     pygame.init()
-    size = 1350, 1080
-    surface = pygame.display.set_mode(size)
-    pygame.display.set_caption('Space Invaders | By Denis and Isa')
-    mytheme = Theme(background_color=(0, 0, 0, 0), widget_font=pygame_menu.font.FONT_8BIT,
-                    title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
-                    widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
-                    widget_font_size=48,
-                    title_font_size=72)
-    menu = pygame_menu.Menu("Space Invaders", 1350, 1080,
-                            theme=mytheme)
-    game = Game(1)
-    menu.add.button('Play', game.run)
-    menu.add.button('Exit', pygame_menu.events.EXIT)
-    menu.mainloop(surface)
+
+
+
 
 
 
