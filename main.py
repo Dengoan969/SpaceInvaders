@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 import pygame
 import pygame_menu
@@ -41,24 +40,15 @@ class GameLevel:
         with open('textures/BunkerShape.txt') as f:
             self.bunker_shape = f.readlines()
 
-        # self.scores_table = []
-        # with open('bestScores.txt') as f:
-        #     for line in f:
-        #         self.scores_table.append(line)
-
         self.block_size = 15
         self.blocks = pygame.sprite.Group()
         self.bunker_x_positions = [
             num * (self.screen_width / 4) for num in
             range(4)]
         self.create_level(level)
-        music = pygame.mixer.Sound("audio/level_music.wav")
-        music.set_volume(1)
-        music.play(loops=-1)
+
         self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
         self.laser_sound.set_volume(0.3)
-        self.is_finished = False
-        self.is_paused = False
         self.is_lost = False
         self.is_win = False
 
@@ -69,29 +59,35 @@ class GameLevel:
         pygame.time.set_timer(ALIENSHOOT, 1000)
         while run:
             clock.tick(60)
+            if self.is_win or self.is_lost:
+                break
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                if event.type == ALIENSHOOT and not self.is_paused and not self.is_finished:
-                    self.aliens_shoot()
+                    break
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.is_game_continue()
+                        run = False
+                        break
+                if event.type == ALIENSHOOT:
+                    self.aliens_shoot()
             self.update()
 
     def gameplay_draw(self):
         self.blocks.draw(self.screen)
         self.mystery.draw(self.screen)
         self.bonuses.draw(self.screen)
-        if not self.is_finished:
-            self.ship.sprite.bullets.draw(self.screen)
-            self.ship.draw(self.screen)
         self.aliens.draw(self.screen)
         self.alien_bullets.draw(self.screen)
         self.display_score()
         self.display_lives()
-        self.victory_message()
-        self.lose_message()
+        self.check_win()
+        self.check_lost()
+        if not self.is_lost:
+            self.ship.sprite.bullets.draw(self.screen)
+            self.ship.draw(self.screen)
 
     def gameplay_update(self):
         self.ship.update()
@@ -110,13 +106,9 @@ class GameLevel:
 
     def update(self):
         self.screen.fill((0, 0, 0))
-        key = pygame.key.get_pressed()
-        if key[pygame.K_ESCAPE]:
-            self.is_paused = not self.is_paused
-            time.sleep(0.2)
-        if not self.is_paused and not self.is_finished:
+        if not self.is_lost:
             self.gameplay_update()
-        self.gameplay_draw()
+            self.gameplay_draw()
         pygame.display.update()
 
     def collision_check(self):
@@ -144,9 +136,9 @@ class GameLevel:
             if pygame.sprite.spritecollide(bullet, self.ship, True):
                 bullet.kill()
                 self.lives -= 1
-                self.lose_message()
                 if self.lives >= 0:
-                    ship = Ship(self.screen_width // 2, self.screen_height - 100)
+                    ship = Ship(self.screen_width // 2,
+                                self.screen_height - 100)
                     self.ship = pygame.sprite.GroupSingle(ship)
 
         for bonus in self.bonuses:
@@ -197,9 +189,11 @@ class GameLevel:
                             self.create_bunker(self.screen_width / 15,
                                                self.screen_height - 250,
                                                self.bunker_x_positions[
-                                                   col_index], GameLevel.bunker_types[col])
+                                                   col_index],
+                                               GameLevel.bunker_types[col])
                         else:
-                            self.create_alien(col_index, row_index, GameLevel.alien_types[col])
+                            self.create_alien(col_index, row_index,
+                                              GameLevel.alien_types[col])
 
     def create_alien(self, col_index, row_index, alien_type,
                      x_distance=80, y_distance=48, x_offset=70, y_offset=100):
@@ -225,7 +219,8 @@ class GameLevel:
     def bonuses_timer(self, x, y):
         self.bonuses_spawn_kills -= 1
         if self.bonuses_spawn_kills <= 0:
-            self.bonuses.add(Bonus(x, y, random.choice(["freeze", "fast", "life", "bullets"])))
+            self.bonuses.add(Bonus(x, y, random.choice(
+                ["freeze", "fast", "life", "bullets"])))
             self.bonuses_spawn_kills = random.randint(5, 10)
 
     def active_bonuses_timer(self):
@@ -243,21 +238,13 @@ class GameLevel:
         score_rect = score_surf.get_rect(topleft=(20, 10))
         self.screen.blit(score_surf, score_rect)
 
-    def victory_message(self):
+    def check_win(self):
         if not self.aliens.sprites():
-            victory_surf = self.big_font.render('You Win!', True, 'white')
-            victory_rect = victory_surf.get_rect(
-                center=(self.screen_width / 2, self.screen_height / 2))
-            self.screen.blit(victory_surf, victory_rect)
-            self.is_finished = True
+            self.is_win = True
 
-    def lose_message(self):
+    def check_lost(self):
         if self.lives < 0:
-            lose_surf = self.big_font.render('You Lose!', True, 'white')
-            lose_rect = lose_surf.get_rect(
-                center=(self.screen_width / 2, self.screen_height / 2))
-            self.screen.blit(lose_surf, lose_rect)
-            self.is_finished = True
+            self.is_lost = True
 
     def get_score_table(self, current_score):
         score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -265,7 +252,7 @@ class GameLevel:
         try:
             with open('score_table.dat', 'rb') as file:
                 score_table = pickle.load(file)
-        except: # TODO: ADD EXCEPTIONS
+        except:  # TODO: ADD EXCEPTIONS
             score_table = [score_record]
         for i in range(len(score_table)):
             score = int(score_table[i].split()[0])
@@ -279,6 +266,9 @@ class GameLevel:
         return score_table
 
     def is_game_continue(self):
+        def disable_menu():
+            menu.disable()
+            self.run()
         mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
                                     widget_font=pygame_menu.font.FONT_8BIT,
                                     title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
@@ -286,19 +276,23 @@ class GameLevel:
                                     widget_font_size=48,
                                     title_font_size=72)
         menu = pygame_menu.Menu("", self.screen_width,
+
                                 self.screen_height,
                                 theme=mytheme)
-        menu.add.button('Continue', self.run)
+        menu.add.button('Continue', disable_menu)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.screen)
-        return True
 
 
 class Game:
     def __init__(self):
         self.screen_size = 1350, 1080
+        self.level_num = 1
         self.surface = pygame.display.set_mode(self.screen_size)
         pygame.display.set_caption('Space Invaders | By Denis and Isa')
+        music = pygame.mixer.Sound("audio/level_music.wav")
+        music.set_volume(1)
+        music.play(loops=-1)
         self.mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
                                          widget_font=pygame_menu.font.FONT_8BIT,
                                          title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
@@ -313,41 +307,34 @@ class Game:
         menu.mainloop(self.surface)
 
     def run(self):
-        i = 1
-        while i < 11:
-            level = GameLevel(i)
-            level.run()
-            if level.is_lost and self.is_game_restart():
-                i = 0
-            if level.is_win:
-                self.is_game_continue()
-            i+=1
+        level = GameLevel(self.level_num)
+        level.run()
+        if level.is_lost:
+            self.is_game_restart()
+        if level.is_win:
+            self.level_num += 1
+            self.is_game_continue()
 
     def is_game_restart(self):
         menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
-        res = False
-        menu.add.button('Restart', res = True)
+        menu.add.button('Restart', self.run)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.surface)
-        return res
 
     def is_game_continue(self):
         menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
-        res = False
-        menu.add.button('Next Level', res = True)
+        menu.add.button('Next Level', self.run)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.surface)
-        return res
 
 
 def main():
     pygame.init()
-    game = Game()
-    game.run()
+    Game().run()
 
 
 if __name__ == '__main__':
