@@ -129,6 +129,7 @@ class Bonus(pygame.sprite.Sprite):
         if self.bonus_type == "freeze":
             self.buffer = game.aliens_speed
             game.aliens_speed = 0
+            game.is_freeze = True
         elif self.bonus_type == "life":
             game.lives += 1
         elif self.bonus_type == "fast":
@@ -140,6 +141,7 @@ class Bonus(pygame.sprite.Sprite):
     def effect_undo(self, game):
         if self.bonus_type == "freeze":
             game.aliens_speed += self.buffer
+            game.is_freeze = False
         elif self.bonus_type == "fast":
             game.ship.sprite.cooldown = self.buffer
         elif self.bonus_type == "bullets":

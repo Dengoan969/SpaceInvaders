@@ -51,6 +51,7 @@ class GameLevel:
         self.laser_sound.set_volume(0.3)
         self.is_lost = False
         self.is_win = False
+        self.is_freeze = False
 
     def run(self):
         run = True
@@ -71,7 +72,7 @@ class GameLevel:
                         self.is_game_continue()
                         run = False
                         break
-                if event.type == ALIENSHOOT:
+                if event.type == ALIENSHOOT and not self.is_freeze:
                     self.aliens_shoot()
             self.update()
 
@@ -246,24 +247,6 @@ class GameLevel:
         if self.lives < 0:
             self.is_lost = True
 
-    def get_score_table(self, current_score):
-        score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-        score_record = f"{current_score} {score_time}"
-        try:
-            with open('score_table.dat', 'rb') as file:
-                score_table = pickle.load(file)
-        except:  # TODO: ADD EXCEPTIONS
-            score_table = [score_record]
-        for i in range(len(score_table)):
-            score = int(score_table[i].split()[0])
-            if current_score > score:
-                score_table.insert(i, score_record)
-                break
-        if len(score_table) > 10:
-            score_table.pop()
-        with open('score_table.dat', 'wb') as file:
-            pickle.dump(score_table, file)
-        return score_table
 
     def is_game_continue(self):
         def disable_menu():
@@ -288,6 +271,7 @@ class Game:
     def __init__(self):
         self.screen_size = 1350, 1080
         self.level_num = 1
+        self.score = 0
         self.surface = pygame.display.set_mode(self.screen_size)
         pygame.display.set_caption('Space Invaders | By Denis and Isa')
         music = pygame.mixer.Sound("audio/level_music.wav")
@@ -309,16 +293,48 @@ class Game:
     def run(self):
         level = GameLevel(self.level_num)
         level.run()
+        self.score += level.score
         if level.is_lost:
-            self.is_game_restart()
+            self.is_game_restart(self.score)
         if level.is_win:
             self.level_num += 1
             self.is_game_continue()
 
-    def is_game_restart(self):
+    def get_score_table(self, current_score):
+        score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        score_record = f"{current_score} {score_time}"
+        try:
+            with open('score_table.dat', 'rb') as file:
+                score_table = pickle.load(file)
+        except:  # TODO: ADD EXCEPTIONS
+            score_table = [score_record]
+        for i in range(len(score_table)):
+            score = int(score_table[i].split()[0])
+            if current_score > score:
+                score_table.insert(i, score_record)
+                break
+        if len(score_table) > 5:
+            score_table.pop()
+        with open('score_table.dat', 'wb') as file:
+            pickle.dump(score_table, file)
+        return score_table
+
+    def display_score_table(self, score_table, menu):
+        allign = -360
+        for record in score_table:
+            menu.add.label(
+                record,
+                align=pygame_menu.locals.ALIGN_LEFT, font_size=38,
+                font_name=pygame_menu.font.FONT_NEVIS).translate(0, allign)
+            allign += 10
+
+    def is_game_restart(self, current_score):
         menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
+        menu.add.label("Scores Table:", align=pygame_menu.locals.ALIGN_LEFT, font_size = 42, font_name=pygame_menu.font.FONT_NEVIS).translate(0, -380)
+        score_table = self.get_score_table(current_score)
+        self.display_score_table(score_table, menu)
         menu.add.button('Restart', self.run)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.surface)
