@@ -31,7 +31,8 @@ class Ship(pygame.sprite.Sprite):
                 time_now - self.last_shot > self.cooldown:
             self.laser_sound.play()
             if self.is_diagonal_shoot:
-                bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5, False)
+                bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5,
+                                False)
                 self.bullets.add(bullet)
                 bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5, False)
                 self.bullets.add(bullet)

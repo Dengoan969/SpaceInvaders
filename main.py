@@ -56,8 +56,8 @@ class GameLevel:
     def run(self):
         run = True
         clock = pygame.time.Clock()
-        ALIENSHOOT = pygame.USEREVENT + 0
-        pygame.time.set_timer(ALIENSHOOT, 1000)
+        aliens_shoot_event = pygame.USEREVENT + 0
+        pygame.time.set_timer(aliens_shoot_event, 1000)
         while run:
             clock.tick(60)
             if self.is_win or self.is_lost:
@@ -72,7 +72,7 @@ class GameLevel:
                         self.is_game_continue()
                         run = False
                         break
-                if event.type == ALIENSHOOT and not self.is_freeze:
+                if event.type == aliens_shoot_event and not self.is_freeze:
                     self.aliens_shoot()
             self.update()
 
@@ -158,6 +158,9 @@ class GameLevel:
             if alien.rect.left <= 0:
                 self.move_aliens_down(5)
                 self.aliens_direction = 1
+                break
+            if alien.rect.bottom >= self.screen_height:
+                self.is_lost = True
                 break
 
     def move_aliens_down(self, distance):
@@ -247,17 +250,16 @@ class GameLevel:
         if self.lives < 0:
             self.is_lost = True
 
-
     def is_game_continue(self):
         def disable_menu():
             menu.disable()
             self.run()
+
         mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
-                                    widget_font=pygame_menu.font.FONT_8BIT,
-                                    title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
-                                    widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
                                     widget_font_size=48,
                                     title_font_size=72)
+        mytheme.widget_font = pygame_menu.font.FONT_8BIT
+        mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_NONE
         menu = pygame_menu.Menu("", self.screen_width,
 
                                 self.screen_height,
@@ -265,6 +267,36 @@ class GameLevel:
         menu.add.button('Continue', disable_menu)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.screen)
+
+
+def get_score_table(current_score):
+    score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+    score_record = f"{current_score} {score_time}"
+    try:
+        with open('score_table.dat', 'rb') as file:
+            score_table = pickle.load(file)
+    except FileNotFoundError:
+        score_table = [score_record]
+    for i in range(len(score_table)):
+        score = int(score_table[i].split()[0])
+        if current_score > score:
+            score_table.insert(i, score_record)
+            break
+    if len(score_table) > 5:
+        score_table.pop()
+    with open('score_table.dat', 'wb') as file:
+        pickle.dump(score_table, file)
+    return score_table
+
+
+def display_score_table(score_table, menu):
+    allign = -360
+    for record in score_table:
+        menu.add.label(
+            record,
+            align=pygame_menu.locals.ALIGN_LEFT, font_size=38,
+            font_name=pygame_menu.font.FONT_NEVIS).translate(0, allign)
+        allign += 10
 
 
 class Game:
@@ -278,11 +310,10 @@ class Game:
         music.set_volume(1)
         music.play(loops=-1)
         self.mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0),
-                                         widget_font=pygame_menu.font.FONT_8BIT,
-                                         title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
-                                         widget_selection_effect=pygame_menu.widgets.HighlightSelection(),
                                          widget_font_size=48,
                                          title_font_size=72)
+        self.mytheme.widget_font = pygame_menu.font.FONT_8BIT
+        self.mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_NONE
         menu = pygame_menu.Menu("Space Invaders", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
@@ -300,41 +331,17 @@ class Game:
             self.level_num += 1
             self.is_game_continue()
 
-    def get_score_table(self, current_score):
-        score_time = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-        score_record = f"{current_score} {score_time}"
-        try:
-            with open('score_table.dat', 'rb') as file:
-                score_table = pickle.load(file)
-        except:  # TODO: ADD EXCEPTIONS
-            score_table = [score_record]
-        for i in range(len(score_table)):
-            score = int(score_table[i].split()[0])
-            if current_score > score:
-                score_table.insert(i, score_record)
-                break
-        if len(score_table) > 5:
-            score_table.pop()
-        with open('score_table.dat', 'wb') as file:
-            pickle.dump(score_table, file)
-        return score_table
-
-    def display_score_table(self, score_table, menu):
-        allign = -360
-        for record in score_table:
-            menu.add.label(
-                record,
-                align=pygame_menu.locals.ALIGN_LEFT, font_size=38,
-                font_name=pygame_menu.font.FONT_NEVIS).translate(0, allign)
-            allign += 10
-
     def is_game_restart(self, current_score):
         menu = pygame_menu.Menu("", self.screen_size[0],
                                 self.screen_size[1],
                                 theme=self.mytheme)
-        menu.add.label("Scores Table:", align=pygame_menu.locals.ALIGN_LEFT, font_size = 42, font_name=pygame_menu.font.FONT_NEVIS).translate(0, -380)
-        score_table = self.get_score_table(current_score)
-        self.display_score_table(score_table, menu)
+        menu.add.label("Scores Table:", align=pygame_menu.locals.ALIGN_LEFT,
+                       font_size=42,
+                       font_name=pygame_menu.font.FONT_NEVIS).translate(0,
+                                                                        -380)
+        score_table = get_score_table(current_score)
+        self.score = 0
+        display_score_table(score_table, menu)
         menu.add.button('Restart', self.run)
         menu.add.button('Exit', pygame_menu.events.EXIT)
         menu.mainloop(self.surface)
