@@ -12,7 +12,8 @@ class GameLevel:
         self.screen = pygame.display.get_surface()
         self.screen_width, self.screen_height = self.screen.get_size()
 
-        ship = Ship(self.screen_width // 2, self.screen_height - 100, self.screen_width, self.screen_height)
+        ship = Ship(self.screen_width // 2, self.screen_height - 100,
+                    self.screen_width, self.screen_height)
         self.ship = pygame.sprite.GroupSingle(ship)
 
         self.lives = 0
@@ -139,7 +140,8 @@ class GameLevel:
                 self.lives -= 1
                 if self.lives >= 0:
                     ship = Ship(self.screen_width // 2,
-                                self.screen_height - 100, self.screen_width, self.screen_height)
+                                self.screen_height - 100,
+                                self.screen_width, self.screen_height)
                     self.ship = pygame.sprite.GroupSingle(ship)
 
         for bonus in self.bonuses:
@@ -217,7 +219,8 @@ class GameLevel:
     def extra_alien_timer(self):
         self.mystery_spawn_time -= 1
         if self.mystery_spawn_time <= 0:
-            self.mystery.add(MysteryShip(random.choice([-1, 1]),self.screen_width))
+            self.mystery.add(MysteryShip(random.choice([-1, 1]),
+                                         self.screen_width))
             self.mystery_spawn_time = random.randint(500, 1000)
 
     def bonuses_timer(self, x, y):
@@ -329,6 +332,8 @@ class Game:
             self.is_game_restart(self.score)
         if level.is_win:
             self.level_num += 1
+            if self.level_num > 10:
+                self.level_num = 1
             self.is_game_continue()
 
     def is_game_restart(self, current_score):

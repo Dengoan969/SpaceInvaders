@@ -35,9 +35,11 @@ class Ship(pygame.sprite.Sprite):
                 bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5,
                                 False, self.screen_height)
                 self.bullets.add(bullet)
-                bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5, False, self.screen_height)
+                bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5,
+                                False, self.screen_height)
                 self.bullets.add(bullet)
-            bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5, False, self.screen_height)
+            bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5,
+                            False, self.screen_height)
             self.bullets.add(bullet)
             self.last_shot = time_now
 

@@ -4,6 +4,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import pygame
+pygame.init()
 
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
@@ -13,26 +14,33 @@ class MockGame:
         self.aliens_speed = 20
         self.is_freeze = False
         self.lives = 0
-        ship = Ship(0, 0, 500, 500)
+        ship = MockShip()
         self.ship = pygame.sprite.GroupSingle(ship)
 
     def reset(self):
         self.aliens_speed = 20
         self.is_freeze = False
         self.lives = 0
-        ship = Ship(0, 0, 500, 500)
+        ship = MockShip()
         self.ship = pygame.sprite.GroupSingle(ship)
+
+
+class MockShip(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.cooldown = 500
+        self.is_diagonal_shoot = False
 
 
 class TestGameObjects(unittest.TestCase):
     def test_bunker_block_translucent(self):
         block = Bunker_Block(15, 0, 0, True)
-        assert block.is_translucent == True
+        assert block.is_translucent
         assert block.image.get_at((0, 0)) == pygame.color.Color(128, 128, 128)
 
     def test_bunker_block_not_translucent(self):
         block = Bunker_Block(15, 0, 0, False)
-        assert block.is_translucent == False
+        assert not block.is_translucent
         assert block.image.get_at((0, 0)) == pygame.color.Color(255, 255, 255)
 
     def test_bunker_block_rect(self):
@@ -64,8 +72,6 @@ class TestGameObjects(unittest.TestCase):
         alien = Alien(5, 10, "blue")
         alien.update(-1, 5)
         assert alien.rect.centerx == 0
-
-    pygame.init()
 
     def test_mystery_rect1(self):
         mystery = MysteryShip(1, 500)
@@ -142,7 +148,7 @@ class TestGameObjects(unittest.TestCase):
         old_speed = self.mock_game.aliens_speed
         bonus.effect(self.mock_game)
         assert self.mock_game.aliens_speed == 0
-        assert self.mock_game.is_freeze == True
+        assert self.mock_game.is_freeze
         assert bonus.buffer == old_speed
 
     def test_bonus_life(self):
@@ -205,4 +211,3 @@ class TestGameObjects(unittest.TestCase):
     def test_bullet_rect(self):
         bullet = Bullet(5, 12, 5, 5, False, 500)
         assert bullet.rect.center == (5, 12)
-
