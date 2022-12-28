@@ -5,32 +5,20 @@ class Ship(pygame.sprite.Sprite):
     def __init__(self, x, y, screen_width, screen_height):
         super().__init__()
         self.image = pygame.image.load('textures/ship.png')
-        self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
-        self.laser_sound.set_volume(0.3)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.speed = 5
         self.bullets = pygame.sprite.Group()
-        self.last_shot = pygame.time.get_ticks()
+        self.last_shot = 0
         self.cooldown = 500
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.is_diagonal_shoot = False
 
-    def update(self):
-        self.handle_input()
-
-    def handle_input(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_LEFT] and self.rect.left > 0:
-            self.rect.x -= self.speed
-        if key[pygame.K_RIGHT] and self.rect.right < self.screen_width:
-            self.rect.x += self.speed
-
+    def shoot(self):
         time_now = pygame.time.get_ticks()
-        if (key[pygame.K_SPACE] or key[pygame.K_UP]) and \
-                time_now - self.last_shot > self.cooldown:
-            self.laser_sound.play()
+        if time_now - self.last_shot > self.cooldown or self.last_shot == 0:
+            self.last_shot = time_now
             if self.is_diagonal_shoot:
                 bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5,
                                 False, self.screen_height)
@@ -41,7 +29,16 @@ class Ship(pygame.sprite.Sprite):
             bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5,
                             False, self.screen_height)
             self.bullets.add(bullet)
-            self.last_shot = time_now
+            return True
+        return False
+
+    def move_left(self):
+        if self.rect.left > 0:
+            self.rect.x -= self.speed
+
+    def move_right(self):
+        if self.rect.right < self.screen_width:
+            self.rect.x += self.speed
 
 
 class Bullet(pygame.sprite.Sprite):

@@ -231,3 +231,53 @@ class TestGameObjects(unittest.TestCase):
         group = pygame.sprite.GroupSingle(bullet)
         bullet.update()
         assert not group.has(bullet)
+
+    def test_ship_rect(self):
+        ship = Ship(0, 12, 500, 500)
+        assert ship.rect.center == (0, 12)
+
+    def test_ship_move_left(self):
+        ship = Ship(250, 12, 500, 500)
+        old_x = ship.rect.x
+        ship.move_left()
+        assert ship.rect.x == old_x - 5
+
+    def test_ship_move_left_bound(self):
+        ship = Ship(42, 12, 500, 500)
+        ship.move_left()
+        assert ship.rect.x != -5
+
+    def test_ship_move_right(self):
+        ship = Ship(250, 12, 500, 500)
+        old_x = ship.rect.x
+        ship.move_right()
+        assert ship.rect.x == old_x + 5
+
+    def test_ship_move_right_bound(self):
+        ship = Ship(541, 12, 500, 500)
+        ship.move_right()
+        assert ship.rect.x != 500
+
+    def test_ship_shoot(self):
+        ship = Ship(250, 12, 500, 500)
+        assert ship.shoot()
+        assert len(ship.bullets) == 1
+        for bullet in ship.bullets:
+            assert bullet.rect.center == (ship.rect.centerx, ship.rect.top)
+            assert bullet.speed == (0, -5)
+            assert bullet.screen_height == ship.screen_height
+
+    def test_ship_diagonal_shoot(self):
+        ship = Ship(250, 12, 500, 500)
+        ship.is_diagonal_shoot = True
+        assert ship.shoot()
+        assert len(ship.bullets) == 3
+        has_diagonal = False
+        for bullet in ship.bullets:
+            assert bullet.rect.center == (ship.rect.centerx, ship.rect.top)
+            if bullet.speed[0] != 0:
+                has_diagonal = True
+            else:
+                assert bullet.speed == (0, -5)
+            assert bullet.screen_height == ship.screen_height
+        assert has_diagonal

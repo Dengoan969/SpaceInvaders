@@ -91,8 +91,19 @@ class GameLevel:
             self.ship.sprite.bullets.draw(self.screen)
             self.ship.draw(self.screen)
 
+    def handle_input(self):
+        key = pygame.key.get_pressed()
+        ship = self.ship.sprite
+        if key[pygame.K_LEFT]:
+            ship.move_left()
+        if key[pygame.K_RIGHT]:
+            ship.move_right()
+        if key[pygame.K_SPACE] or key[pygame.K_UP]:
+            if ship.shoot():
+                self.laser_sound.play()
+
     def gameplay_update(self):
-        self.ship.update()
+        self.handle_input()
         self.ship.sprite.bullets.update()
 
         self.collision_check()
@@ -120,7 +131,8 @@ class GameLevel:
                 bullet.kill()
                 self.bonuses_timer(alien.rect.x, alien.rect.y)
                 self.score += alien.price
-                self.aliens_speed += 0.1
+                if not self.is_freeze:
+                    self.aliens_speed += 0.2
             bunker_blocks = pygame.sprite.spritecollide(bullet, self.blocks,
                                                         False)
             for block in bunker_blocks:
@@ -130,7 +142,7 @@ class GameLevel:
 
             if pygame.sprite.spritecollide(bullet, self.mystery, True):
                 bullet.kill()
-                self.score += 500
+                self.score += 1000
 
         for bullet in self.alien_bullets:
             if pygame.sprite.spritecollide(bullet, self.blocks, True):
@@ -154,11 +166,11 @@ class GameLevel:
     def aliens_position_check(self):
         for alien in self.aliens:
             if alien.rect.right >= self.screen_width:
-                self.move_aliens_down(5)
+                self.move_aliens_down(20)
                 self.aliens_direction = -1
                 break
             if alien.rect.left <= 0:
-                self.move_aliens_down(5)
+                self.move_aliens_down(20)
                 self.aliens_direction = 1
                 break
             if alien.rect.bottom >= self.screen_height:
