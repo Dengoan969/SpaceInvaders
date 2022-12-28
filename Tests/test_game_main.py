@@ -216,3 +216,73 @@ class TestGameLevel(unittest.TestCase):
             assert not alien.alive()
         assert old_timer - level.bonuses_spawn_kills == len(hit_aliens)
         assert level.aliens_speed == old_speed + 0.2 * len(hit_aliens)
+
+    def test_collision_check_hit_block(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        screen_width, screen_height = screen.get_size()
+        bullet = Bullet(158, 830, 1, 1, False, screen_height)
+        level.ship.sprite.bullets.add(bullet)
+        bunker_blocks = pygame.sprite.spritecollide(bullet, level.blocks,
+                                                    False)
+        level.collision_check()
+        assert not bullet.alive()
+        for block in bunker_blocks:
+            assert not block.alive()
+
+    def test_collision_check_hit_translucent_block(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(2, screen)
+        screen_width, screen_height = screen.get_size()
+        bullet = Bullet(158, 830, 1, 1, False, screen_height)
+        level.ship.sprite.bullets.add(bullet)
+        bunker_blocks = pygame.sprite.spritecollide(bullet, level.blocks,
+                                                    False)
+        level.collision_check()
+        assert bullet.alive()
+        for block in bunker_blocks:
+            assert block.alive()
+
+    def test_collision_check_hit_mystery(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        screen_width, screen_height = screen.get_size()
+        mystery = MysteryShip(1, screen_width)
+        level.mystery.add(mystery)
+        bullet = Bullet(-80, 50, 1, 1, False, screen_height)
+        level.ship.sprite.bullets.add(bullet)
+        mystery = pygame.sprite.spritecollide(bullet, level.mystery, False)
+        level.collision_check()
+        assert not bullet.alive()
+        for alien in mystery:
+            assert not alien.alive()
+        assert level.score == 1000
+
+    def test_collision_alien_hit_block(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        screen_width, screen_height = screen.get_size()
+        bullet = Bullet(158, 830, 1, 1, True, screen_height)
+        level.alien_bullets.add(bullet)
+        bunker_blocks = pygame.sprite.spritecollide(bullet, level.blocks,
+                                                    False)
+        level.collision_check()
+        assert not bullet.alive()
+        for block in bunker_blocks:
+            assert not block.alive()
+
+    def test_collision_alien_hit_ship(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.lives = 1
+        screen_width, screen_height = screen.get_size()
+        bullet = Bullet(screen_width // 2, screen_height - 100, 1, 1,
+                        True, screen_height)
+        level.alien_bullets.add(bullet)
+        player = pygame.sprite.spritecollide(bullet, level.ship, False)
+        level.collision_check()
+        assert not bullet.alive()
+        for ship in player:
+            assert not ship.alive()
+        assert level.lives == 0
+        assert level.ship.sprites()
