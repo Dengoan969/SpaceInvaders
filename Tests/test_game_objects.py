@@ -211,3 +211,23 @@ class TestGameObjects(unittest.TestCase):
     def test_bullet_rect(self):
         bullet = Bullet(5, 12, 5, 5, False, 500)
         assert bullet.rect.center == (5, 12)
+
+    def test_bullet_update(self):
+        bullet = Bullet(0, 0, 1, 5, False, 500)
+        old_x = bullet.rect.x
+        old_y = bullet.rect.y
+        bullet.update()
+        assert bullet.rect.x == old_x + 1
+        assert bullet.rect.y == old_y + 5
+
+    def test_bullet_update_out(self):
+        bullet = Bullet(99, 99, -500, -500, False, 100)
+        group = pygame.sprite.GroupSingle(bullet)
+        bullet.update()
+        assert not group.has(bullet)
+
+    def test_alien_bullet_update_out(self):
+        bullet = Bullet(0, 0, 500, 500, True, 100)
+        group = pygame.sprite.GroupSingle(bullet)
+        bullet.update()
+        assert not group.has(bullet)
