@@ -1,12 +1,11 @@
 import unittest
 import os
+from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
 import pygame
-pygame.init()
 
-from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
+pygame.init()
 
 
 class MockGame:

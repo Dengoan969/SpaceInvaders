@@ -1,15 +1,14 @@
 from datetime import datetime
 import os
-
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
-pygame.init()
-
 import pygame_menu
 import random
 import pickle
-
 from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
+
+pygame.init()
 
 
 class GameLevel:
@@ -112,7 +111,7 @@ class GameLevel:
 
         self.collision_check()
 
-        self.extra_alien_timer()
+        self.mystery_timer()
         self.active_bonuses_timer()
         self.mystery.update()
         self.bonuses.update()
@@ -232,7 +231,7 @@ class GameLevel:
                     block = Bunker_Block(self.block_size, x, y, is_translucent)
                     self.blocks.add(block)
 
-    def extra_alien_timer(self):
+    def mystery_timer(self):
         self.mystery_spawn_time -= 1
         if self.mystery_spawn_time <= 0:
             self.mystery.add(MysteryShip(random.choice([-1, 1]),

@@ -3,14 +3,12 @@ import os
 import main
 import pickle
 from datetime import datetime
+from game_objects import Bullet, Alien, MysteryShip, Bonus
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
 import pygame
 
 pygame.init()
-
-from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
 class MockScreen:
@@ -173,8 +171,8 @@ class TestGameLevel(unittest.TestCase):
         screen = MockScreen(1920, 1080)
         screen_width, screen_height = screen.get_size()
         level = main.GameLevel(1, screen)
-        bonuses = [Bonus(0,0,"freeze", screen_height),
-                   Bonus(1,1,"fast", screen_height)]
+        bonuses = [Bonus(0, 0, "freeze", screen_height),
+                   Bonus(1, 1, "fast", screen_height)]
         level.active_bonuses = pygame.sprite.Group(bonuses)
         old_time = bonuses[0].time
         level.active_bonuses_timer()
@@ -195,7 +193,7 @@ class TestGameLevel(unittest.TestCase):
         level = main.GameLevel(1, screen)
         assert not level.mystery.sprites()
         level.mystery_spawn_time = 1
-        level.extra_alien_timer()
+        level.mystery_timer()
         assert level.mystery.sprites()
         assert level.mystery_spawn_time > 1
 
@@ -286,3 +284,33 @@ class TestGameLevel(unittest.TestCase):
             assert not ship.alive()
         assert level.lives == 0
         assert level.ship.sprites()
+
+    def test_collision_bonus(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        screen_width, screen_height = screen.get_size()
+        bonus = Bonus(screen_width // 2, screen_height - 100,
+                      "freeze", screen_height)
+        level.bonuses.add(bonus)
+        assert pygame.sprite.spritecollide(bonus, level.ship, False)
+        assert not level.active_bonuses.sprites()
+        level.collision_check()
+        assert not level.bonuses.sprites()
+        assert level.ship.sprite.alive()
+        assert level.active_bonuses.has(bonus)
+
+    def test_create_alien(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.aliens = pygame.sprite.Group()
+        level.create_alien(0, 0, "red")
+        assert len(level.aliens) == 1
+        assert level.aliens.sprites()[0].rect.center == (70, 100)
+        assert level.aliens.sprites()[0].price == 250
+
+    def test_create_bunker(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.blocks = pygame.sprite.Group()
+        level.create_bunker(0, 0, 0, False)
+        assert level.blocks.sprites()
