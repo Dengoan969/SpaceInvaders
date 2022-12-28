@@ -13,8 +13,8 @@ from game_objects import Ship, Bullet, Alien, Bunker_Block, MysteryShip, Bonus
 
 
 class GameLevel:
-    def __init__(self, level):
-        self.screen = pygame.display.get_surface()
+    def __init__(self, level, screen):
+        self.screen = screen
         self.screen_width, self.screen_height = self.screen.get_size()
 
         ship = Ship(self.screen_width // 2, self.screen_height - 100,
@@ -23,14 +23,13 @@ class GameLevel:
 
         self.lives = 0
         self.live_img = pygame.image.load(
-            'textures/ship.png').convert()
+            'textures/ship.png')
         self.live_x_start_pos = self.screen_width - (
                 self.live_img.get_size()[0] * 2 + 20)
 
         self.score = 0
 
         self.font = pygame.font.SysFont('pixeled', 40)
-        self.big_font = pygame.font.SysFont('pixeled', 72)
 
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
@@ -52,9 +51,7 @@ class GameLevel:
             num * (self.screen_width / 4) for num in
             range(4)]
         self.create_level(level)
-
-        self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
-        self.laser_sound.set_volume(0.3)
+        self.laser_sound = None
         self.is_lost = False
         self.is_win = False
         self.is_freeze = False
@@ -64,6 +61,8 @@ class GameLevel:
         clock = pygame.time.Clock()
         aliens_shoot_event = pygame.USEREVENT + 0
         pygame.time.set_timer(aliens_shoot_event, 1000)
+        self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
+        self.laser_sound.set_volume(0.3)
         while run:
             clock.tick(60)
             if self.is_win or self.is_lost:
@@ -127,7 +126,7 @@ class GameLevel:
         if not self.is_lost:
             self.gameplay_update()
             self.gameplay_draw()
-        pygame.display.update()
+            pygame.display.update()
 
     def collision_check(self):
         for bullet in self.ship.sprite.bullets:
@@ -199,7 +198,7 @@ class GameLevel:
     bunker_types = {"B": False, "T": True}
 
     def create_level(self, level):
-        with open(f"Levels\\{level}.txt") as f:
+        with open(f"Levels/{level}.txt") as f:
             is_bunkers = False
             lines = f.read().splitlines()
             for row_index, row in enumerate(lines):
@@ -342,10 +341,11 @@ class Game:
         menu.mainloop(self.surface)
 
     def run(self):
-        level = GameLevel(self.level_num)
+        level = GameLevel(self.level_num, self.surface)
         level.run()
         self.score += level.score
         if level.is_lost:
+            self.level_num = 1
             self.is_game_restart(self.score)
         if level.is_win:
             self.level_num += 1
