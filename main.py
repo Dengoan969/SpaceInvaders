@@ -1,5 +1,10 @@
 from datetime import datetime
+import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+pygame.init()
+
 import pygame_menu
 import random
 import pickle
@@ -373,7 +378,6 @@ class Game:
 
 
 def main():
-    pygame.init()
     Game().run()
 
 
