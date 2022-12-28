@@ -150,3 +150,51 @@ class TestGameLevel(unittest.TestCase):
         alien.rect.bottom = screen_height
         level.aliens_position_check()
         assert level.is_lost
+
+    def test_check_win(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.check_win()
+        assert not level.is_win
+        level.aliens = pygame.sprite.Group()
+        level.check_win()
+        assert level.is_win
+
+    def test_check_lost(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.check_lost()
+        assert not level.is_lost
+        level.lives = -1
+        level.check_lost()
+        assert level.is_lost
+
+    def test_active_bonuses_timer(self):
+        screen = MockScreen(1920, 1080)
+        screen_width, screen_height = screen.get_size()
+        level = main.GameLevel(1, screen)
+        bonuses = [Bonus(0,0,"freeze", screen_height),
+                   Bonus(1,1,"fast", screen_height)]
+        level.active_bonuses = pygame.sprite.Group(bonuses)
+        old_time = bonuses[0].time
+        level.active_bonuses_timer()
+        for bonus in bonuses:
+            assert bonus.time == old_time - 1
+
+    def test_bonuses_timer(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        assert not level.bonuses.sprites()
+        level.bonuses_spawn_kills = 1
+        level.bonuses_timer(0, 0)
+        assert level.bonuses.sprites()
+        assert level.bonuses_spawn_kills > 1
+
+    def test_mystery_timer(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        assert not level.mystery.sprites()
+        level.mystery_spawn_time = 1
+        level.extra_alien_timer()
+        assert level.mystery.sprites()
+        assert level.mystery_spawn_time > 1
