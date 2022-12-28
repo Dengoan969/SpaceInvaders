@@ -25,6 +25,11 @@ class MockScreen:
         pass
 
 
+class MockSound:
+    def play(self):
+        pass
+
+
 class TestGameLevel(unittest.TestCase):
     def test_get_score_table_empty(self):
         if os.path.exists("score_table.dat"):
@@ -85,3 +90,63 @@ class TestGameLevel(unittest.TestCase):
         level.alien_bullets.add(bullet)
         level.update()
         assert bullet.rect.y == old_y
+
+    def test_move_aliens_down(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        old_y = []
+        for alien in level.aliens:
+            old_y.append((alien, alien.rect.y))
+        level.move_aliens_down(50)
+        for alien in old_y:
+            assert alien[0].rect.y == alien[1] + 50
+
+    def test_aliens_not_shoot(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        level.aliens = pygame.sprite.Group()
+        level.aliens_shoot()
+        assert not level.alien_bullets.sprites()
+
+    def test_alien_shoot(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        assert not level.alien_bullets.sprites()
+        alien = Alien(0, 0, "red")
+        level.aliens = pygame.sprite.Group(alien)
+        level.laser_sound = MockSound()
+        level.aliens_shoot()
+        assert level.alien_bullets.sprites()
+
+    def test_alien_position_check_right(self):
+        screen = MockScreen(1920, 1080)
+        screen_width, screen_height = screen.get_size()
+        level = main.GameLevel(1, screen)
+        alien = Alien(10, 10, "red")
+        level.aliens = pygame.sprite.Group(alien)
+        old_y = alien.rect.y
+        alien.rect.right = screen_width
+        level.aliens_position_check()
+        assert alien.rect.y == old_y + 20
+        assert level.aliens_direction == -1
+
+    def test_alien_position_check_left(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        alien = Alien(10, 10, "red")
+        level.aliens = pygame.sprite.Group(alien)
+        old_y = alien.rect.y
+        alien.rect.left = 0
+        level.aliens_position_check()
+        assert alien.rect.y == old_y + 20
+        assert level.aliens_direction == 1
+
+    def test_alien_position_check_down(self):
+        screen = MockScreen(1920, 1080)
+        screen_width, screen_height = screen.get_size()
+        level = main.GameLevel(1, screen)
+        alien = Alien(50, 50, "red")
+        level.aliens = pygame.sprite.Group(alien)
+        alien.rect.bottom = screen_height
+        level.aliens_position_check()
+        assert level.is_lost
