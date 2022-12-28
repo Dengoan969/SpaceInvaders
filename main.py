@@ -12,7 +12,7 @@ class GameLevel:
         self.screen = pygame.display.get_surface()
         self.screen_width, self.screen_height = self.screen.get_size()
 
-        ship = Ship(self.screen_width // 2, self.screen_height - 100)
+        ship = Ship(self.screen_width // 2, self.screen_height - 100, self.screen_width, self.screen_height)
         self.ship = pygame.sprite.GroupSingle(ship)
 
         self.lives = 0
@@ -139,7 +139,7 @@ class GameLevel:
                 self.lives -= 1
                 if self.lives >= 0:
                     ship = Ship(self.screen_width // 2,
-                                self.screen_height - 100)
+                                self.screen_height - 100, self.screen_width, self.screen_height)
                     self.ship = pygame.sprite.GroupSingle(ship)
 
         for bonus in self.bonuses:
@@ -171,7 +171,7 @@ class GameLevel:
         if self.aliens.sprites():
             alien = random.choice(self.aliens.sprites())
             laser_sprite = Bullet(alien.rect.centerx, alien.rect.bottom, 0, 5,
-                                  True)
+                                  True, self.screen_height)
             self.alien_bullets.add(laser_sprite)
             self.laser_sound.play()
 
@@ -217,14 +217,14 @@ class GameLevel:
     def extra_alien_timer(self):
         self.mystery_spawn_time -= 1
         if self.mystery_spawn_time <= 0:
-            self.mystery.add(MysteryShip(random.choice([-1, 1])))
+            self.mystery.add(MysteryShip(random.choice([-1, 1]),self.screen_width))
             self.mystery_spawn_time = random.randint(500, 1000)
 
     def bonuses_timer(self, x, y):
         self.bonuses_spawn_kills -= 1
         if self.bonuses_spawn_kills <= 0:
             self.bonuses.add(Bonus(x, y, random.choice(
-                ["freeze", "fast", "life", "bullets"])))
+                ["freeze", "fast", "life", "bullets"]), self.screen_height))
             self.bonuses_spawn_kills = random.randint(5, 10)
 
     def active_bonuses_timer(self):

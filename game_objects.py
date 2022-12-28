@@ -2,9 +2,9 @@ import pygame
 
 
 class Ship(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, screen_width, screen_height):
         super().__init__()
-        self.image = pygame.image.load('textures/ship.png').convert()
+        self.image = pygame.image.load('textures/ship.png')
         self.laser_sound = pygame.mixer.Sound("audio/shoot_sound.wav")
         self.laser_sound.set_volume(0.3)
         self.rect = self.image.get_rect()
@@ -13,7 +13,8 @@ class Ship(pygame.sprite.Sprite):
         self.bullets = pygame.sprite.Group()
         self.last_shot = pygame.time.get_ticks()
         self.cooldown = 500
-        self.screen_width = pygame.display.get_surface().get_width()
+        self.screen_width = screen_width
+        self.screen_height = screen_height
         self.is_diagonal_shoot = False
 
     def update(self):
@@ -32,19 +33,19 @@ class Ship(pygame.sprite.Sprite):
             self.laser_sound.play()
             if self.is_diagonal_shoot:
                 bullet = Bullet(self.rect.centerx, self.rect.top, -1, -5,
-                                False)
+                                False, self.screen_height)
                 self.bullets.add(bullet)
-                bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5, False)
+                bullet = Bullet(self.rect.centerx, self.rect.top, 1, -5, False, self.screen_height)
                 self.bullets.add(bullet)
-            bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5, False)
+            bullet = Bullet(self.rect.centerx, self.rect.top, 0, -5, False, self.screen_height)
             self.bullets.add(bullet)
             self.last_shot = time_now
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, speed_x, speed_y, is_alien):
+    def __init__(self, x, y, speed_x, speed_y, is_alien, screen_height):
         super().__init__()
-        self.screen_height = pygame.display.get_surface().get_height()
+        self.screen_height = screen_height
         if is_alien:
             self.image = pygame.image.load("textures/alien_bullet.png")
         elif speed_x != 0:
@@ -91,9 +92,9 @@ class Bunker_Block(pygame.sprite.Sprite):
 
 
 class MysteryShip(pygame.sprite.Sprite):
-    def __init__(self, direction):
+    def __init__(self, direction, screen_width):
         super().__init__()
-        self.screen_width = pygame.display.get_surface().get_width()
+        self.screen_width = screen_width
         self.image = pygame.image.load("textures/MysteryShip.png")
         self.rect = self.image.get_rect()
         if direction == 1:
@@ -111,12 +112,12 @@ class MysteryShip(pygame.sprite.Sprite):
 
 
 class Bonus(pygame.sprite.Sprite):
-    def __init__(self, x, y, bonus_type):
+    def __init__(self, x, y, bonus_type, screen_height):
         super().__init__()
         self.bonus_type = bonus_type
         self.buffer = None
         self.time = 500
-        self.screen_height = pygame.display.get_surface().get_height()
+        self.screen_height = screen_height
         self.image = pygame.image.load(f"textures/bonus_{bonus_type}.jpg")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
