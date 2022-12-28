@@ -198,3 +198,21 @@ class TestGameLevel(unittest.TestCase):
         level.extra_alien_timer()
         assert level.mystery.sprites()
         assert level.mystery_spawn_time > 1
+
+    def test_collision_check_hit_alien(self):
+        screen = MockScreen(1920, 1080)
+        level = main.GameLevel(1, screen)
+        screen_width, screen_height = screen.get_size()
+        bullet = Bullet(150, 150, 1, 1, False, screen_height)
+        level.ship.sprite.bullets.add(bullet)
+        hit_aliens = pygame.sprite.spritecollide(bullet, level.aliens, False)
+        old_timer = level.bonuses_spawn_kills
+        old_speed = level.aliens_speed
+        level.collision_check()
+        assert not bullet.alive()
+        score = 0
+        for alien in hit_aliens:
+            score += alien.price
+            assert not alien.alive()
+        assert old_timer - level.bonuses_spawn_kills == len(hit_aliens)
+        assert level.aliens_speed == old_speed + 0.2 * len(hit_aliens)
